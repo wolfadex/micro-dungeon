@@ -1,0 +1,3 @@
+[submodule "elm-dependencies/elm-ansi"]
+	path = elm-dependencies/elm-ansi
+	url = git@github.com:wolfadex/elm-ansi.git
