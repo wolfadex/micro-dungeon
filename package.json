@@ -6,7 +6,7 @@
   "main": "index.js",
   "dependencies": {},
   "scripts": {
-    "dev": "nodemon --exec 'elm-esm make src/Main.elm --output=dist/elm.js' --watch src --watch examples -e elm"
+    "dev": "nodemon --exec 'elm-esm make src/Main.elm --output=dist/elm.js' --watch src --watch elm-dependencies -e elm"
   },
   "devDependencies": {
     "elm-esm": "^1.1.4",

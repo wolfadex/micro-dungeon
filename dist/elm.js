@@ -2468,12 +2468,21 @@ var $elm$core$String$join = F2(
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
-var $author$project$Ansi$Cursor$hide = $author$project$Ansi$Internal$toCommand('?25l');
 var $elm$core$String$fromInt = _String_fromNumber;
 var $author$project$Ansi$Cursor$moveTo = function (to) {
 	return $author$project$Ansi$Internal$toCommand(
 		$elm$core$String$fromInt(to.row) + (';' + ($elm$core$String$fromInt(to.column) + 'H')));
 };
+var $author$project$Main$drawAt = F2(
+	function (loc, str) {
+		return _Utils_ap(
+			$author$project$Ansi$Cursor$moveTo(loc),
+			str);
+	});
+var $author$project$Main$drawEntity = function (ent) {
+	return A2($author$project$Main$drawAt, ent.position, ent.symbol);
+};
+var $author$project$Ansi$Cursor$hide = $author$project$Ansi$Internal$toCommand('?25l');
 var $author$project$Ansi$Font$resetAll = $author$project$Ansi$Internal$toCommand('0m');
 var $author$project$Ansi$setTitle = function (title) {
 	return '\u001B]0;' + (title + '\u0007');
@@ -2869,29 +2878,68 @@ var $author$project$Main$render = function (model) {
 						$author$project$Ansi$Font$resetAll,
 						$author$project$Ansi$clearScreen,
 						$author$project$Ansi$setTitle('Micro Dungeon'),
-						$author$project$Ansi$Cursor$moveTo(
-						{column: model.player.x, row: model.player.y}),
-						'☺'
+						$author$project$Main$drawEntity(model.player)
 					]))));
 };
 var $author$project$Main$init = function (_v0) {
 	return $author$project$Main$render(
 		{
-			player: {x: 0, y: 0}
+			debug: '',
+			player: {
+				position: {column: 0, row: 0},
+				symbol: '☺'
+			}
 		});
 };
 var $elm$json$Json$Decode$int = _Json_decodeInt;
-var $elm$core$Basics$identity = function (x) {
-	return x;
+var $author$project$Main$Keypress = function (a) {
+	return {$: 'Keypress', a: a};
 };
 var $author$project$Main$Stdin = function (a) {
 	return {$: 'Stdin', a: a};
 };
+var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$json$Json$Decode$value = _Json_decodeValue;
+var $author$project$Main$keypress = _Platform_incomingPort('keypress', $elm$json$Json$Decode$value);
 var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$Main$stdin = _Platform_incomingPort('stdin', $elm$json$Json$Decode$string);
 var $author$project$Main$subscriptions = function (_v0) {
-	return $author$project$Main$stdin($author$project$Main$Stdin);
+	return $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				$author$project$Main$stdin($author$project$Main$Stdin),
+				$author$project$Main$keypress($author$project$Main$Keypress)
+			]));
 };
+var $author$project$Ansi$Key = F6(
+	function (code, ctrl, meta, name, sequence, shift) {
+		return {code: code, ctrl: ctrl, meta: meta, name: name, sequence: sequence, shift: shift};
+	});
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$map6 = _Json_map6;
+var $elm$json$Json$Decode$map = _Json_map1;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $elm$json$Json$Decode$succeed = _Json_succeed;
+var $elm$json$Json$Decode$maybe = function (decoder) {
+	return $elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, decoder),
+				$elm$json$Json$Decode$succeed($elm$core$Maybe$Nothing)
+			]));
+};
+var $author$project$Ansi$decodeKey = A7(
+	$elm$json$Json$Decode$map6,
+	$author$project$Ansi$Key,
+	$elm$json$Json$Decode$maybe(
+		A2($elm$json$Json$Decode$field, 'code', $elm$json$Json$Decode$string)),
+	A2($elm$json$Json$Decode$field, 'ctrl', $elm$json$Json$Decode$bool),
+	A2($elm$json$Json$Decode$field, 'meta', $elm$json$Json$Decode$bool),
+	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'sequence', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'shift', $elm$json$Json$Decode$bool));
+var $elm$json$Json$Decode$decodeValue = _Json_run;
 var $elm$core$String$length = _String_length;
 var $elm$core$String$slice = _String_slice;
 var $elm$core$String$dropLeft = F2(
@@ -2942,36 +2990,92 @@ var $author$project$Ansi$isUpArrow = function (str) {
 		return false;
 	}
 };
+var $elm$core$Result$map = F2(
+	function (func, ra) {
+		if (ra.$ === 'Ok') {
+			var a = ra.a;
+			return $elm$core$Result$Ok(
+				func(a));
+		} else {
+			var e = ra.a;
+			return $elm$core$Result$Err(e);
+		}
+	});
+var $elm$core$Result$mapError = F2(
+	function (f, result) {
+		if (result.$ === 'Ok') {
+			var v = result.a;
+			return $elm$core$Result$Ok(v);
+		} else {
+			var e = result.a;
+			return $elm$core$Result$Err(
+				f(e));
+		}
+	});
+var $author$project$Main$boardMax = {column: 80, row: 20};
 var $elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
+var $author$project$Main$moveBy = F2(
+	function (amount, ent) {
+		var position = ent.position;
+		return _Utils_update(
+			ent,
+			{
+				position: {
+					column: A2(
+						$elm$core$Basics$min,
+						$author$project$Main$boardMax.column,
+						A2($elm$core$Basics$max, 0, position.column + amount.column)),
+					row: A2(
+						$elm$core$Basics$min,
+						$author$project$Main$boardMax.row,
+						A2($elm$core$Basics$max, 0, position.row + amount.row))
+				}
+			});
+	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$Debug$toString = _Debug_toString;
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		var str = msg.a;
-		var player = model.player;
-		return $author$project$Main$render(
-			_Utils_update(
-				model,
-				{
-					player: $author$project$Ansi$isUpArrow(str) ? _Utils_update(
-						player,
-						{
-							y: A2($elm$core$Basics$max, player.y - 1, 0)
-						}) : ($author$project$Ansi$isDownArrow(str) ? _Utils_update(
-						player,
-						{
-							y: A2($elm$core$Basics$min, player.y + 1, 20)
-						}) : ($author$project$Ansi$isLeftArrow(str) ? _Utils_update(
-						player,
-						{
-							x: A2($elm$core$Basics$max, player.x - 1, 0)
-						}) : ($author$project$Ansi$isRightArrow(str) ? _Utils_update(
-						player,
-						{
-							x: A2($elm$core$Basics$min, player.x + 1, 80)
-						}) : player)))
-				}));
+		if (msg.$ === 'Stdin') {
+			var str = msg.a;
+			return $author$project$Main$render(
+				_Utils_update(
+					model,
+					{
+						player: A2(
+							$author$project$Main$moveBy,
+							$author$project$Ansi$isUpArrow(str) ? {column: 0, row: -1} : ($author$project$Ansi$isDownArrow(str) ? {column: 0, row: 1} : ($author$project$Ansi$isLeftArrow(str) ? {column: -1, row: 0} : ($author$project$Ansi$isRightArrow(str) ? {column: 1, row: 0} : {column: 0, row: 0}))),
+							model.player)
+					}));
+		} else {
+			var val = msg.a;
+			return $author$project$Main$render(
+				_Utils_update(
+					model,
+					{
+						debug: function (r) {
+							if (r.$ === 'Ok') {
+								var s = r.a;
+								return s;
+							} else {
+								var s = r.a;
+								return s;
+							}
+						}(
+							A2(
+								$elm$core$Result$mapError,
+								$elm$core$Debug$toString,
+								A2(
+									$elm$core$Result$map,
+									$elm$core$Debug$toString,
+									A2($elm$json$Json$Decode$decodeValue, $author$project$Ansi$decodeKey, val))))
+					}));
+		}
 	});
 var $elm$core$Platform$worker = _Platform_worker;
 var $author$project$Main$main = $elm$core$Platform$worker(
