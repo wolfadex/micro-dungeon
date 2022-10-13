@@ -1,11 +1,12 @@
 port module Main exposing (main)
 
 import Ansi
-import Ansi.Color exposing (Location(..))
+import Ansi.Color exposing (Color, Location(..))
 import Ansi.Cursor
 import Ansi.Font
-import Json.Decode exposing (Decoder)
+import Json.Decode
 import Json.Encode exposing (Value)
+import Terminal
 
 
 main : Program Int Model Msg
@@ -26,7 +27,42 @@ type alias Model =
 type alias Entity =
     { position : Pnt
     , symbol : String
+    , color : Color
     }
+
+
+type alias Tile =
+    { position : Pnt
+    , walkable : Bool
+    , transparent : Bool
+    , symbol : String
+    , color : Color
+    }
+
+
+floor : Pnt -> Tile
+floor pos =
+    { position = pos
+    , walkable = True
+    , transparent = True
+    , symbol = " "
+    , color = gray
+    }
+
+
+wall : Pnt -> Tile
+wall pos =
+    { position = pos
+    , walkable = False
+    , transparent = False
+    , symbol = "#"
+    , color = gray
+    }
+
+
+gray : Color
+gray =
+    Ansi.Color.rgb { red = 5, green = 5, blue = 5 }
 
 
 type alias Pnt =
@@ -46,8 +82,12 @@ init : Int -> ( Model, Cmd Msg )
 init _ =
     render
         { player =
-            { position = { column = 0, row = 0 }
+            { position =
+                { column = boardMax.column // 2
+                , row = boardMax.row // 2
+                }
             , symbol = "☺"
+            , color = Ansi.Color.green
             }
         , debug = ""
         }
@@ -145,15 +185,42 @@ render model =
       , Ansi.setTitle "Micro Dungeon"
       , model.player
             |> drawEntity
+      , List.range 0 boardMax.column
+            |> List.concatMap
+                (\column ->
+                    List.range 0 boardMax.row
+                        |> List.filterMap
+                            (\row ->
+                                if row == 0 || row == boardMax.row then
+                                    Just (wall { column = column, row = row })
+
+                                else if column == 0 || column == boardMax.column then
+                                    Just (wall { column = column, row = row })
+
+                                else
+                                    Nothing
+                            )
+                )
+            |> List.map drawTile
+            |> String.concat
+      , "#"
       ]
         |> String.concat
         |> stdout
     )
 
 
+drawTile : Tile -> String
+drawTile tile =
+    tile.symbol
+        |> Terminal.color tile.color
+        |> drawAt tile.position
+
+
 drawEntity : Entity -> String
 drawEntity ent =
     ent.symbol
+        |> Terminal.color ent.color
         |> drawAt ent.position
 
 
