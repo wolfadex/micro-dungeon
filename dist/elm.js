@@ -2450,10 +2450,10 @@ var $elm$core$Basics$apR = F2(
 	});
 var $elm$core$Basics$append = _Utils_append;
 var $author$project$Ansi$Internal$commandStr = '\u001B[';
-var $author$project$Ansi$Internal$toAnsiCommand = function (str) {
+var $author$project$Ansi$Internal$toCommand = function (str) {
 	return _Utils_ap($author$project$Ansi$Internal$commandStr, str);
 };
-var $author$project$Ansi$clearScreen = $author$project$Ansi$Internal$toAnsiCommand('2J');
+var $author$project$Ansi$clearScreen = $author$project$Ansi$Internal$toCommand('2J');
 var $elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
 };
@@ -2468,13 +2468,16 @@ var $elm$core$String$join = F2(
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
-var $author$project$Ansi$Cursor$hide = $author$project$Ansi$Internal$toAnsiCommand('?25l');
+var $author$project$Ansi$Cursor$hide = $author$project$Ansi$Internal$toCommand('?25l');
 var $elm$core$String$fromInt = _String_fromNumber;
 var $author$project$Ansi$Cursor$moveTo = function (to) {
-	return $author$project$Ansi$Internal$toAnsiCommand(
+	return $author$project$Ansi$Internal$toCommand(
 		$elm$core$String$fromInt(to.row) + (';' + ($elm$core$String$fromInt(to.column) + 'H')));
 };
-var $author$project$Ansi$Font$resetAll = $author$project$Ansi$Internal$toAnsiCommand('0m');
+var $author$project$Ansi$Font$resetAll = $author$project$Ansi$Internal$toCommand('0m');
+var $author$project$Ansi$setTitle = function (title) {
+	return '\u001B]0;' + (title + '\u0007');
+};
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -2865,6 +2868,7 @@ var $author$project$Main$render = function (model) {
 						$author$project$Ansi$Cursor$hide,
 						$author$project$Ansi$Font$resetAll,
 						$author$project$Ansi$clearScreen,
+						$author$project$Ansi$setTitle('Micro Dungeon'),
 						$author$project$Ansi$Cursor$moveTo(
 						{column: model.player.x, row: model.player.y}),
 						'☺'

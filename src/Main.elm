@@ -76,16 +76,13 @@ update msg model =
                 |> render
 
 
-
--- 27 91 65
-
-
 render : Model -> ( Model, Cmd Msg )
 render model =
     ( model
     , [ Ansi.Cursor.hide
       , Ansi.Font.resetAll
       , Ansi.clearScreen
+      , Ansi.setTitle "Micro Dungeon"
       , Ansi.Cursor.moveTo { row = model.player.y, column = model.player.x }
       , "☺"
       ]
