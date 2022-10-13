@@ -2449,8 +2449,9 @@ var $elm$core$Basics$apR = F2(
 		return f(x);
 	});
 var $elm$core$Basics$append = _Utils_append;
+var $author$project$Ansi$Internal$commandStr = '\u001B[';
 var $author$project$Ansi$Internal$toAnsiCommand = function (str) {
-	return '\u001B[' + str;
+	return _Utils_ap($author$project$Ansi$Internal$commandStr, str);
 };
 var $author$project$Ansi$clearScreen = $author$project$Ansi$Internal$toAnsiCommand('2J');
 var $elm$core$Maybe$Just = function (a) {
@@ -2865,13 +2866,15 @@ var $author$project$Main$render = function (model) {
 						$author$project$Ansi$Font$resetAll,
 						$author$project$Ansi$clearScreen,
 						$author$project$Ansi$Cursor$moveTo(
-						{column: 0, row: 0}),
+						{column: model.player.x, row: model.player.y}),
 						'☺'
 					]))));
 };
 var $author$project$Main$init = function (_v0) {
 	return $author$project$Main$render(
-		{input: ''});
+		{
+			player: {x: 0, y: 0}
+		});
 };
 var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $elm$core$Basics$identity = function (x) {
@@ -2885,22 +2888,85 @@ var $author$project$Main$stdin = _Platform_incomingPort('stdin', $elm$json$Json$
 var $author$project$Main$subscriptions = function (_v0) {
 	return $author$project$Main$stdin($author$project$Main$Stdin);
 };
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
+var $elm$core$String$length = _String_length;
 var $elm$core$String$slice = _String_slice;
-var $elm$core$String$dropRight = F2(
+var $elm$core$String$dropLeft = F2(
 	function (n, string) {
-		return (n < 1) ? string : A3($elm$core$String$slice, 0, -n, string);
+		return (n < 1) ? string : A3(
+			$elm$core$String$slice,
+			n,
+			$elm$core$String$length(string),
+			string);
+	});
+var $elm$core$String$startsWith = _String_startsWith;
+var $author$project$Ansi$getCommand = function (str) {
+	return A2($elm$core$String$startsWith, $author$project$Ansi$Internal$commandStr, str) ? $elm$core$Maybe$Just(
+		A2(
+			$elm$core$String$dropLeft,
+			$elm$core$String$length($author$project$Ansi$Internal$commandStr),
+			str)) : $elm$core$Maybe$Nothing;
+};
+var $author$project$Ansi$isDownArrow = function (str) {
+	var _v0 = $author$project$Ansi$getCommand(str);
+	if ((_v0.$ === 'Just') && (_v0.a === 'B')) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $author$project$Ansi$isLeftArrow = function (str) {
+	var _v0 = $author$project$Ansi$getCommand(str);
+	if ((_v0.$ === 'Just') && (_v0.a === 'D')) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $author$project$Ansi$isRightArrow = function (str) {
+	var _v0 = $author$project$Ansi$getCommand(str);
+	if ((_v0.$ === 'Just') && (_v0.a === 'C')) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $author$project$Ansi$isUpArrow = function (str) {
+	var _v0 = $author$project$Ansi$getCommand(str);
+	if ((_v0.$ === 'Just') && (_v0.a === 'A')) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var str = msg.a;
+		var player = model.player;
 		return $author$project$Main$render(
 			_Utils_update(
 				model,
 				{
-					input: ((str === '\u007F') || (str === '\u0008')) ? A2($elm$core$String$dropRight, 1, model.input) : _Utils_ap(model.input, str)
+					player: $author$project$Ansi$isUpArrow(str) ? _Utils_update(
+						player,
+						{
+							y: A2($elm$core$Basics$max, player.y - 1, 0)
+						}) : ($author$project$Ansi$isDownArrow(str) ? _Utils_update(
+						player,
+						{
+							y: A2($elm$core$Basics$min, player.y + 1, 20)
+						}) : ($author$project$Ansi$isLeftArrow(str) ? _Utils_update(
+						player,
+						{
+							x: A2($elm$core$Basics$max, player.x - 1, 0)
+						}) : ($author$project$Ansi$isRightArrow(str) ? _Utils_update(
+						player,
+						{
+							x: A2($elm$core$Basics$min, player.x + 1, 80)
+						}) : player)))
 				}));
 	});
 var $elm$core$Platform$worker = _Platform_worker;

@@ -16,14 +16,20 @@ main =
 
 
 type alias Model =
-    { input : String
+    { player : Pnt
+    }
+
+
+type alias Pnt =
+    { x : Int
+    , y : Int
     }
 
 
 init : Int -> ( Model, Cmd Msg )
 init _ =
     render
-        { input = ""
+        { player = { x = 0, y = 0 }
         }
 
 
@@ -46,16 +52,32 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Stdin str ->
+            let
+                player =
+                    model.player
+            in
             { model
-                | input =
-                    -- Delete or Backspace (not sure about forward delete)
-                    if str == "\u{007F}" || str == "\u{0008}" then
-                        String.dropRight 1 model.input
+                | player =
+                    if Ansi.isUpArrow str then
+                        { player | y = max (player.y - 1) 0 }
+
+                    else if Ansi.isDownArrow str then
+                        { player | y = min (player.y + 1) 20 }
+
+                    else if Ansi.isLeftArrow str then
+                        { player | x = max (player.x - 1) 0 }
+
+                    else if Ansi.isRightArrow str then
+                        { player | x = min (player.x + 1) 80 }
 
                     else
-                        model.input ++ str
+                        player
             }
                 |> render
+
+
+
+-- 27 91 65
 
 
 render : Model -> ( Model, Cmd Msg )
@@ -64,7 +86,7 @@ render model =
     , [ Ansi.Cursor.hide
       , Ansi.Font.resetAll
       , Ansi.clearScreen
-      , Ansi.Cursor.moveTo { row = 0, column = 0 }
+      , Ansi.Cursor.moveTo { row = model.player.y, column = model.player.x }
       , "☺"
       ]
         |> String.concat
