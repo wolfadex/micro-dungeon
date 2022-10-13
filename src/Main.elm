@@ -6,6 +6,7 @@ import Ansi.Cursor
 import Ansi.Font
 import Json.Decode
 import Json.Encode exposing (Value)
+import Map exposing (Map, Pnt)
 import Terminal
 
 
@@ -21,6 +22,7 @@ main =
 type alias Model =
     { player : Entity
     , debug : String
+    , gameMap : Map Tile
     }
 
 
@@ -32,28 +34,25 @@ type alias Entity =
 
 
 type alias Tile =
-    { position : Pnt
-    , walkable : Bool
+    { walkable : Bool
     , transparent : Bool
     , symbol : String
     , color : Color
     }
 
 
-floor : Pnt -> Tile
-floor pos =
-    { position = pos
-    , walkable = True
+floor : Tile
+floor =
+    { walkable = True
     , transparent = True
     , symbol = " "
     , color = gray
     }
 
 
-wall : Pnt -> Tile
-wall pos =
-    { position = pos
-    , walkable = False
+wall : Tile
+wall =
+    { walkable = False
     , transparent = False
     , symbol = "#"
     , color = gray
@@ -62,13 +61,7 @@ wall pos =
 
 gray : Color
 gray =
-    Ansi.Color.rgb { red = 5, green = 5, blue = 5 }
-
-
-type alias Pnt =
-    { column : Int
-    , row : Int
-    }
+    Ansi.Color.rgb { red = 205, green = 205, blue = 205 }
 
 
 boardMax : Pnt
@@ -89,6 +82,21 @@ init _ =
             , symbol = "☺"
             , color = Ansi.Color.green
             }
+        , gameMap =
+            Map.init
+                { width = boardMax.column
+                , height = boardMax.row
+                }
+                (\pnt ->
+                    if pnt.row == 0 || pnt.row == boardMax.row then
+                        wall
+
+                    else if pnt.column == 0 || pnt.column == boardMax.column then
+                        wall
+
+                    else
+                        floor
+                )
         , debug = ""
         }
 
@@ -183,38 +191,19 @@ render model =
       , Ansi.Font.resetAll
       , Ansi.clearScreen
       , Ansi.setTitle "Micro Dungeon"
-      , model.player
-            |> drawEntity
-      , List.range 0 boardMax.column
-            |> List.concatMap
-                (\column ->
-                    List.range 0 boardMax.row
-                        |> List.filterMap
-                            (\row ->
-                                if row == 0 || row == boardMax.row then
-                                    Just (wall { column = column, row = row })
-
-                                else if column == 0 || column == boardMax.column then
-                                    Just (wall { column = column, row = row })
-
-                                else
-                                    Nothing
-                            )
-                )
-            |> List.map drawTile
-            |> String.concat
-      , "#"
+      , Map.draw drawTile model.gameMap
+      , model.player |> drawEntity
       ]
         |> String.concat
         |> stdout
     )
 
 
-drawTile : Tile -> String
-drawTile tile =
+drawTile : Pnt -> Tile -> String
+drawTile pnt tile =
     tile.symbol
         |> Terminal.color tile.color
-        |> drawAt tile.position
+        |> drawAt pnt
 
 
 drawEntity : Entity -> String

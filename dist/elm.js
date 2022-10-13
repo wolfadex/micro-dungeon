@@ -80,190 +80,6 @@ function A9(fun, a, b, c, d, e, f, g, h, i) {
 console.warn('Compiled in DEV mode. Follow the advice at https://elm-lang.org/0.19.1/optimize for better performance and smaller assets.');
 
 
-// EQUALITY
-
-function _Utils_eq(x, y)
-{
-	for (
-		var pair, stack = [], isEqual = _Utils_eqHelp(x, y, 0, stack);
-		isEqual && (pair = stack.pop());
-		isEqual = _Utils_eqHelp(pair.a, pair.b, 0, stack)
-		)
-	{}
-
-	return isEqual;
-}
-
-function _Utils_eqHelp(x, y, depth, stack)
-{
-	if (x === y)
-	{
-		return true;
-	}
-
-	if (typeof x !== 'object' || x === null || y === null)
-	{
-		typeof x === 'function' && _Debug_crash(5);
-		return false;
-	}
-
-	if (depth > 100)
-	{
-		stack.push(_Utils_Tuple2(x,y));
-		return true;
-	}
-
-	/**/
-	if (x.$ === 'Set_elm_builtin')
-	{
-		x = $elm$core$Set$toList(x);
-		y = $elm$core$Set$toList(y);
-	}
-	if (x.$ === 'RBNode_elm_builtin' || x.$ === 'RBEmpty_elm_builtin')
-	{
-		x = $elm$core$Dict$toList(x);
-		y = $elm$core$Dict$toList(y);
-	}
-	//*/
-
-	/**_UNUSED/
-	if (x.$ < 0)
-	{
-		x = $elm$core$Dict$toList(x);
-		y = $elm$core$Dict$toList(y);
-	}
-	//*/
-
-	for (var key in x)
-	{
-		if (!_Utils_eqHelp(x[key], y[key], depth + 1, stack))
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-var _Utils_equal = F2(_Utils_eq);
-var _Utils_notEqual = F2(function(a, b) { return !_Utils_eq(a,b); });
-
-
-
-// COMPARISONS
-
-// Code in Generate/JavaScript.hs, Basics.js, and List.js depends on
-// the particular integer values assigned to LT, EQ, and GT.
-
-function _Utils_cmp(x, y, ord)
-{
-	if (typeof x !== 'object')
-	{
-		return x === y ? /*EQ*/ 0 : x < y ? /*LT*/ -1 : /*GT*/ 1;
-	}
-
-	/**/
-	if (x instanceof String)
-	{
-		var a = x.valueOf();
-		var b = y.valueOf();
-		return a === b ? 0 : a < b ? -1 : 1;
-	}
-	//*/
-
-	/**_UNUSED/
-	if (typeof x.$ === 'undefined')
-	//*/
-	/**/
-	if (x.$[0] === '#')
-	//*/
-	{
-		return (ord = _Utils_cmp(x.a, y.a))
-			? ord
-			: (ord = _Utils_cmp(x.b, y.b))
-				? ord
-				: _Utils_cmp(x.c, y.c);
-	}
-
-	// traverse conses until end of a list or a mismatch
-	for (; x.b && y.b && !(ord = _Utils_cmp(x.a, y.a)); x = x.b, y = y.b) {} // WHILE_CONSES
-	return ord || (x.b ? /*GT*/ 1 : y.b ? /*LT*/ -1 : /*EQ*/ 0);
-}
-
-var _Utils_lt = F2(function(a, b) { return _Utils_cmp(a, b) < 0; });
-var _Utils_le = F2(function(a, b) { return _Utils_cmp(a, b) < 1; });
-var _Utils_gt = F2(function(a, b) { return _Utils_cmp(a, b) > 0; });
-var _Utils_ge = F2(function(a, b) { return _Utils_cmp(a, b) >= 0; });
-
-var _Utils_compare = F2(function(x, y)
-{
-	var n = _Utils_cmp(x, y);
-	return n < 0 ? $elm$core$Basics$LT : n ? $elm$core$Basics$GT : $elm$core$Basics$EQ;
-});
-
-
-// COMMON VALUES
-
-var _Utils_Tuple0_UNUSED = 0;
-var _Utils_Tuple0 = { $: '#0' };
-
-function _Utils_Tuple2_UNUSED(a, b) { return { a: a, b: b }; }
-function _Utils_Tuple2(a, b) { return { $: '#2', a: a, b: b }; }
-
-function _Utils_Tuple3_UNUSED(a, b, c) { return { a: a, b: b, c: c }; }
-function _Utils_Tuple3(a, b, c) { return { $: '#3', a: a, b: b, c: c }; }
-
-function _Utils_chr_UNUSED(c) { return c; }
-function _Utils_chr(c) { return new String(c); }
-
-
-// RECORDS
-
-function _Utils_update(oldRecord, updatedFields)
-{
-	var newRecord = {};
-
-	for (var key in oldRecord)
-	{
-		newRecord[key] = oldRecord[key];
-	}
-
-	for (var key in updatedFields)
-	{
-		newRecord[key] = updatedFields[key];
-	}
-
-	return newRecord;
-}
-
-
-// APPEND
-
-var _Utils_append = F2(_Utils_ap);
-
-function _Utils_ap(xs, ys)
-{
-	// append Strings
-	if (typeof xs === 'string')
-	{
-		return xs + ys;
-	}
-
-	// append Lists
-	if (!xs.b)
-	{
-		return ys;
-	}
-	var root = _List_Cons(xs.a, ys);
-	xs = xs.b
-	for (var curr = root; xs.b; xs = xs.b) // WHILE_CONS
-	{
-		curr = curr.b = _List_Cons(xs.a, ys);
-	}
-	return root;
-}
-
-
-
 var _List_Nil_UNUSED = { $: 0 };
 var _List_Nil = { $: '[]' };
 
@@ -789,6 +605,190 @@ function _Debug_regionToString(region)
 		return 'on line ' + region.start.line;
 	}
 	return 'on lines ' + region.start.line + ' through ' + region.end.line;
+}
+
+
+
+// EQUALITY
+
+function _Utils_eq(x, y)
+{
+	for (
+		var pair, stack = [], isEqual = _Utils_eqHelp(x, y, 0, stack);
+		isEqual && (pair = stack.pop());
+		isEqual = _Utils_eqHelp(pair.a, pair.b, 0, stack)
+		)
+	{}
+
+	return isEqual;
+}
+
+function _Utils_eqHelp(x, y, depth, stack)
+{
+	if (x === y)
+	{
+		return true;
+	}
+
+	if (typeof x !== 'object' || x === null || y === null)
+	{
+		typeof x === 'function' && _Debug_crash(5);
+		return false;
+	}
+
+	if (depth > 100)
+	{
+		stack.push(_Utils_Tuple2(x,y));
+		return true;
+	}
+
+	/**/
+	if (x.$ === 'Set_elm_builtin')
+	{
+		x = $elm$core$Set$toList(x);
+		y = $elm$core$Set$toList(y);
+	}
+	if (x.$ === 'RBNode_elm_builtin' || x.$ === 'RBEmpty_elm_builtin')
+	{
+		x = $elm$core$Dict$toList(x);
+		y = $elm$core$Dict$toList(y);
+	}
+	//*/
+
+	/**_UNUSED/
+	if (x.$ < 0)
+	{
+		x = $elm$core$Dict$toList(x);
+		y = $elm$core$Dict$toList(y);
+	}
+	//*/
+
+	for (var key in x)
+	{
+		if (!_Utils_eqHelp(x[key], y[key], depth + 1, stack))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+var _Utils_equal = F2(_Utils_eq);
+var _Utils_notEqual = F2(function(a, b) { return !_Utils_eq(a,b); });
+
+
+
+// COMPARISONS
+
+// Code in Generate/JavaScript.hs, Basics.js, and List.js depends on
+// the particular integer values assigned to LT, EQ, and GT.
+
+function _Utils_cmp(x, y, ord)
+{
+	if (typeof x !== 'object')
+	{
+		return x === y ? /*EQ*/ 0 : x < y ? /*LT*/ -1 : /*GT*/ 1;
+	}
+
+	/**/
+	if (x instanceof String)
+	{
+		var a = x.valueOf();
+		var b = y.valueOf();
+		return a === b ? 0 : a < b ? -1 : 1;
+	}
+	//*/
+
+	/**_UNUSED/
+	if (typeof x.$ === 'undefined')
+	//*/
+	/**/
+	if (x.$[0] === '#')
+	//*/
+	{
+		return (ord = _Utils_cmp(x.a, y.a))
+			? ord
+			: (ord = _Utils_cmp(x.b, y.b))
+				? ord
+				: _Utils_cmp(x.c, y.c);
+	}
+
+	// traverse conses until end of a list or a mismatch
+	for (; x.b && y.b && !(ord = _Utils_cmp(x.a, y.a)); x = x.b, y = y.b) {} // WHILE_CONSES
+	return ord || (x.b ? /*GT*/ 1 : y.b ? /*LT*/ -1 : /*EQ*/ 0);
+}
+
+var _Utils_lt = F2(function(a, b) { return _Utils_cmp(a, b) < 0; });
+var _Utils_le = F2(function(a, b) { return _Utils_cmp(a, b) < 1; });
+var _Utils_gt = F2(function(a, b) { return _Utils_cmp(a, b) > 0; });
+var _Utils_ge = F2(function(a, b) { return _Utils_cmp(a, b) >= 0; });
+
+var _Utils_compare = F2(function(x, y)
+{
+	var n = _Utils_cmp(x, y);
+	return n < 0 ? $elm$core$Basics$LT : n ? $elm$core$Basics$GT : $elm$core$Basics$EQ;
+});
+
+
+// COMMON VALUES
+
+var _Utils_Tuple0_UNUSED = 0;
+var _Utils_Tuple0 = { $: '#0' };
+
+function _Utils_Tuple2_UNUSED(a, b) { return { a: a, b: b }; }
+function _Utils_Tuple2(a, b) { return { $: '#2', a: a, b: b }; }
+
+function _Utils_Tuple3_UNUSED(a, b, c) { return { a: a, b: b, c: c }; }
+function _Utils_Tuple3(a, b, c) { return { $: '#3', a: a, b: b, c: c }; }
+
+function _Utils_chr_UNUSED(c) { return c; }
+function _Utils_chr(c) { return new String(c); }
+
+
+// RECORDS
+
+function _Utils_update(oldRecord, updatedFields)
+{
+	var newRecord = {};
+
+	for (var key in oldRecord)
+	{
+		newRecord[key] = oldRecord[key];
+	}
+
+	for (var key in updatedFields)
+	{
+		newRecord[key] = updatedFields[key];
+	}
+
+	return newRecord;
+}
+
+
+// APPEND
+
+var _Utils_append = F2(_Utils_ap);
+
+function _Utils_ap(xs, ys)
+{
+	// append Strings
+	if (typeof xs === 'string')
+	{
+		return xs + ys;
+	}
+
+	// append Lists
+	if (!xs.b)
+	{
+		return ys;
+	}
+	var root = _List_Cons(xs.a, ys);
+	xs = xs.b
+	for (var curr = root; xs.b; xs = xs.b) // WHILE_CONS
+	{
+		curr = curr.b = _List_Cons(xs.a, ys);
+	}
+	return root;
 }
 
 
@@ -2365,18 +2365,33 @@ function _Platform_mergeExportsDebug(moduleName, obj, exports)
 }
 */
 var $author$project$Main$boardMax = {column: 80, row: 20};
-var $elm$core$Basics$identity = function (x) {
-	return x;
-};
-var $author$project$Ansi$Color$Color = function (a) {
-	return {$: 'Color', a: a};
-};
-var $author$project$Ansi$Color$green = $author$project$Ansi$Color$Color(
-	{blue: 0, green: 255, red: 0});
 var $elm$core$Basics$EQ = {$: 'EQ'};
-var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
 var $elm$core$List$cons = _List_cons;
+var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
+var $elm$core$Array$foldr = F3(
+	function (func, baseCase, _v0) {
+		var tree = _v0.c;
+		var tail = _v0.d;
+		var helper = F2(
+			function (node, acc) {
+				if (node.$ === 'SubTree') {
+					var subTree = node.a;
+					return A3($elm$core$Elm$JsArray$foldr, helper, acc, subTree);
+				} else {
+					var values = node.a;
+					return A3($elm$core$Elm$JsArray$foldr, func, acc, values);
+				}
+			});
+		return A3(
+			$elm$core$Elm$JsArray$foldr,
+			helper,
+			A3($elm$core$Elm$JsArray$foldr, func, baseCase, tail),
+			tree);
+	});
+var $elm$core$Array$toList = function (array) {
+	return A3($elm$core$Array$foldr, $elm$core$List$cons, _List_Nil, array);
+};
 var $elm$core$Dict$foldr = F3(
 	function (func, acc, t) {
 		foldr:
@@ -2429,56 +2444,66 @@ var $elm$core$Set$toList = function (_v0) {
 	var dict = _v0.a;
 	return $elm$core$Dict$keys(dict);
 };
-var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
-var $elm$core$Array$foldr = F3(
-	function (func, baseCase, _v0) {
-		var tree = _v0.c;
-		var tail = _v0.d;
-		var helper = F2(
-			function (node, acc) {
-				if (node.$ === 'SubTree') {
-					var subTree = node.a;
-					return A3($elm$core$Elm$JsArray$foldr, helper, acc, subTree);
-				} else {
-					var values = node.a;
-					return A3($elm$core$Elm$JsArray$foldr, func, acc, values);
-				}
-			});
-		return A3(
-			$elm$core$Elm$JsArray$foldr,
-			helper,
-			A3($elm$core$Elm$JsArray$foldr, func, baseCase, tail),
-			tree);
-	});
-var $elm$core$Array$toList = function (array) {
-	return A3($elm$core$Array$foldr, $elm$core$List$cons, _List_Nil, array);
+var $elm$core$Basics$GT = {$: 'GT'};
+var $elm$core$Basics$eq = _Utils_equal;
+var $elm$core$Basics$True = {$: 'True'};
+var $elm$core$Basics$identity = function (x) {
+	return x;
 };
+var $author$project$Ansi$Color$Color = function (a) {
+	return {$: 'Color', a: a};
+};
+var $author$project$Ansi$Color$rgb = function (opts) {
+	return $author$project$Ansi$Color$Color(
+		{blue: opts.blue, green: opts.green, red: opts.red});
+};
+var $author$project$Main$gray = $author$project$Ansi$Color$rgb(
+	{blue: 205, green: 205, red: 205});
+var $author$project$Main$floor = {color: $author$project$Main$gray, symbol: ' ', transparent: true, walkable: true};
+var $author$project$Ansi$Color$green = $author$project$Ansi$Color$Color(
+	{blue: 0, green: 255, red: 0});
 var $elm$core$Basics$idiv = _Basics_idiv;
-var $elm$core$Maybe$Just = function (a) {
-	return {$: 'Just', a: a};
+var $author$project$Map$Map = function (a) {
+	return {$: 'Map', a: a};
 };
-var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $elm$core$Basics$apR = F2(
 	function (x, f) {
 		return f(x);
 	});
-var $elm$core$Basics$append = _Utils_append;
-var $author$project$Ansi$Internal$commandStr = '\u001B[';
-var $author$project$Ansi$Internal$toCommand = function (str) {
-	return _Utils_ap($author$project$Ansi$Internal$commandStr, str);
-};
-var $author$project$Ansi$clearScreen = $author$project$Ansi$Internal$toCommand('2J');
-var $elm$core$String$join = F2(
-	function (sep, chunks) {
-		return A2(
-			_String_join,
-			sep,
-			_List_toArray(chunks));
+var $elm$core$Array$branchFactor = 32;
+var $elm$core$Array$Array_elm_builtin = F4(
+	function (a, b, c, d) {
+		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
 	});
-var $elm$core$String$concat = function (strings) {
-	return A2($elm$core$String$join, '', strings);
+var $elm$core$Elm$JsArray$empty = _JsArray_empty;
+var $elm$core$Basics$ceiling = _Basics_ceiling;
+var $elm$core$Basics$fdiv = _Basics_fdiv;
+var $elm$core$Basics$logBase = F2(
+	function (base, number) {
+		return _Basics_log(number) / _Basics_log(base);
+	});
+var $elm$core$Basics$toFloat = _Basics_toFloat;
+var $elm$core$Array$shiftStep = $elm$core$Basics$ceiling(
+	A2($elm$core$Basics$logBase, 2, $elm$core$Array$branchFactor));
+var $elm$core$Array$empty = A4($elm$core$Array$Array_elm_builtin, 0, $elm$core$Array$shiftStep, $elm$core$Elm$JsArray$empty, $elm$core$Elm$JsArray$empty);
+var $elm$core$Elm$JsArray$initialize = _JsArray_initialize;
+var $elm$core$Basics$False = {$: 'False'};
+var $elm$core$Array$Leaf = function (a) {
+	return {$: 'Leaf', a: a};
 };
+var $elm$core$Basics$apL = F2(
+	function (f, x) {
+		return f(x);
+	});
 var $elm$core$Basics$add = _Basics_add;
+var $elm$core$Basics$floor = _Basics_floor;
+var $elm$core$Elm$JsArray$length = _JsArray_length;
+var $elm$core$Basics$gt = _Utils_gt;
+var $elm$core$Basics$max = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) > 0) ? x : y;
+	});
+var $elm$core$Basics$mul = _Basics_mul;
 var $elm$core$List$foldl = F3(
 	function (func, acc, list) {
 		foldl:
@@ -2498,10 +2523,218 @@ var $elm$core$List$foldl = F3(
 			}
 		}
 	});
-var $elm$core$Basics$gt = _Utils_gt;
 var $elm$core$List$reverse = function (list) {
 	return A3($elm$core$List$foldl, $elm$core$List$cons, _List_Nil, list);
 };
+var $elm$core$Basics$sub = _Basics_sub;
+var $elm$core$Array$SubTree = function (a) {
+	return {$: 'SubTree', a: a};
+};
+var $elm$core$Elm$JsArray$initializeFromList = _JsArray_initializeFromList;
+var $elm$core$Array$compressNodes = F2(
+	function (nodes, acc) {
+		compressNodes:
+		while (true) {
+			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, nodes);
+			var node = _v0.a;
+			var remainingNodes = _v0.b;
+			var newAcc = A2(
+				$elm$core$List$cons,
+				$elm$core$Array$SubTree(node),
+				acc);
+			if (!remainingNodes.b) {
+				return $elm$core$List$reverse(newAcc);
+			} else {
+				var $temp$nodes = remainingNodes,
+					$temp$acc = newAcc;
+				nodes = $temp$nodes;
+				acc = $temp$acc;
+				continue compressNodes;
+			}
+		}
+	});
+var $elm$core$Tuple$first = function (_v0) {
+	var x = _v0.a;
+	return x;
+};
+var $elm$core$Array$treeFromBuilder = F2(
+	function (nodeList, nodeListSize) {
+		treeFromBuilder:
+		while (true) {
+			var newNodeSize = $elm$core$Basics$ceiling(nodeListSize / $elm$core$Array$branchFactor);
+			if (newNodeSize === 1) {
+				return A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, nodeList).a;
+			} else {
+				var $temp$nodeList = A2($elm$core$Array$compressNodes, nodeList, _List_Nil),
+					$temp$nodeListSize = newNodeSize;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue treeFromBuilder;
+			}
+		}
+	});
+var $elm$core$Array$builderToArray = F2(
+	function (reverseNodeList, builder) {
+		if (!builder.nodeListSize) {
+			return A4(
+				$elm$core$Array$Array_elm_builtin,
+				$elm$core$Elm$JsArray$length(builder.tail),
+				$elm$core$Array$shiftStep,
+				$elm$core$Elm$JsArray$empty,
+				builder.tail);
+		} else {
+			var treeLen = builder.nodeListSize * $elm$core$Array$branchFactor;
+			var depth = $elm$core$Basics$floor(
+				A2($elm$core$Basics$logBase, $elm$core$Array$branchFactor, treeLen - 1));
+			var correctNodeList = reverseNodeList ? $elm$core$List$reverse(builder.nodeList) : builder.nodeList;
+			var tree = A2($elm$core$Array$treeFromBuilder, correctNodeList, builder.nodeListSize);
+			return A4(
+				$elm$core$Array$Array_elm_builtin,
+				$elm$core$Elm$JsArray$length(builder.tail) + treeLen,
+				A2($elm$core$Basics$max, 5, depth * $elm$core$Array$shiftStep),
+				tree,
+				builder.tail);
+		}
+	});
+var $elm$core$Basics$lt = _Utils_lt;
+var $elm$core$Array$initializeHelp = F5(
+	function (fn, fromIndex, len, nodeList, tail) {
+		initializeHelp:
+		while (true) {
+			if (fromIndex < 0) {
+				return A2(
+					$elm$core$Array$builderToArray,
+					false,
+					{nodeList: nodeList, nodeListSize: (len / $elm$core$Array$branchFactor) | 0, tail: tail});
+			} else {
+				var leaf = $elm$core$Array$Leaf(
+					A3($elm$core$Elm$JsArray$initialize, $elm$core$Array$branchFactor, fromIndex, fn));
+				var $temp$fn = fn,
+					$temp$fromIndex = fromIndex - $elm$core$Array$branchFactor,
+					$temp$len = len,
+					$temp$nodeList = A2($elm$core$List$cons, leaf, nodeList),
+					$temp$tail = tail;
+				fn = $temp$fn;
+				fromIndex = $temp$fromIndex;
+				len = $temp$len;
+				nodeList = $temp$nodeList;
+				tail = $temp$tail;
+				continue initializeHelp;
+			}
+		}
+	});
+var $elm$core$Basics$le = _Utils_le;
+var $elm$core$Basics$remainderBy = _Basics_remainderBy;
+var $elm$core$Array$initialize = F2(
+	function (len, fn) {
+		if (len <= 0) {
+			return $elm$core$Array$empty;
+		} else {
+			var tailLen = len % $elm$core$Array$branchFactor;
+			var tail = A3($elm$core$Elm$JsArray$initialize, tailLen, len - tailLen, fn);
+			var initialFromIndex = (len - tailLen) - $elm$core$Array$branchFactor;
+			return A5($elm$core$Array$initializeHelp, fn, initialFromIndex, len, _List_Nil, tail);
+		}
+	});
+var $author$project$Map$init = F2(
+	function (size, initFn) {
+		return $author$project$Map$Map(
+			A2(
+				$elm$core$Array$initialize,
+				size.width,
+				function (column) {
+					return A2(
+						$elm$core$Array$initialize,
+						size.height,
+						function (row) {
+							return initFn(
+								{column: column, row: row});
+						});
+				}));
+	});
+var $elm$core$Basics$or = _Basics_or;
+var $elm$core$Basics$append = _Utils_append;
+var $author$project$Ansi$Internal$commandStr = '\u001B[';
+var $author$project$Ansi$Internal$toCommand = function (str) {
+	return _Utils_ap($author$project$Ansi$Internal$commandStr, str);
+};
+var $author$project$Ansi$clearScreen = $author$project$Ansi$Internal$toCommand('2J');
+var $elm$core$Maybe$Just = function (a) {
+	return {$: 'Just', a: a};
+};
+var $elm$core$Maybe$Nothing = {$: 'Nothing'};
+var $elm$core$String$join = F2(
+	function (sep, chunks) {
+		return A2(
+			_String_join,
+			sep,
+			_List_toArray(chunks));
+	});
+var $elm$core$String$concat = function (strings) {
+	return A2($elm$core$String$join, '', strings);
+};
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$Array$toIndexedList = function (array) {
+	var len = array.a;
+	var helper = F2(
+		function (entry, _v0) {
+			var index = _v0.a;
+			var list = _v0.b;
+			return _Utils_Tuple2(
+				index - 1,
+				A2(
+					$elm$core$List$cons,
+					_Utils_Tuple2(index, entry),
+					list));
+		});
+	return A3(
+		$elm$core$Array$foldr,
+		helper,
+		_Utils_Tuple2(len - 1, _List_Nil),
+		array).b;
+};
+var $author$project$Map$draw = F2(
+	function (drawTile, _v0) {
+		var m = _v0.a;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v1, columnResult) {
+					var column = _v1.a;
+					var columnData = _v1.b;
+					return _Utils_ap(
+						columnResult,
+						A3(
+							$elm$core$List$foldl,
+							F2(
+								function (_v2, rowResult) {
+									var row = _v2.a;
+									var tile = _v2.b;
+									return _Utils_ap(
+										rowResult,
+										A2(
+											drawTile,
+											{column: column, row: row},
+											tile));
+								}),
+							'',
+							$elm$core$Array$toIndexedList(columnData)));
+				}),
+			'',
+			$elm$core$Array$toIndexedList(m));
+	});
+var $author$project$Ansi$Color$Foreground = {$: 'Foreground'};
+var $author$project$Ansi$Color$encodeLocation = function (loc) {
+	if (loc.$ === 'Foreground') {
+		return 38;
+	} else {
+		return 48;
+	}
+};
+var $elm$core$String$fromInt = _String_fromNumber;
 var $elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -2557,17 +2790,6 @@ var $elm$core$List$foldr = F3(
 	function (fn, acc, ls) {
 		return A4($elm$core$List$foldrHelper, fn, acc, 0, ls);
 	});
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
 var $elm$core$List$map = F2(
 	function (f, xs) {
 		return A3(
@@ -2582,20 +2804,6 @@ var $elm$core$List$map = F2(
 			_List_Nil,
 			xs);
 	});
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
-	});
-var $author$project$Ansi$Color$Foreground = {$: 'Foreground'};
-var $author$project$Ansi$Color$encodeLocation = function (loc) {
-	if (loc.$ === 'Foreground') {
-		return 38;
-	} else {
-		return 48;
-	}
-};
-var $elm$core$String$fromInt = _String_fromNumber;
 var $author$project$Ansi$Color$encode = F2(
 	function (location, _v0) {
 		var col = _v0.a;
@@ -2655,56 +2863,14 @@ var $author$project$Main$drawEntity = function (ent) {
 		ent.position,
 		A2($author$project$Terminal$color, ent.color, ent.symbol));
 };
-var $author$project$Main$drawTile = function (tile) {
-	return A2(
-		$author$project$Main$drawAt,
-		tile.position,
-		A2($author$project$Terminal$color, tile.color, tile.symbol));
-};
-var $elm$core$Basics$eq = _Utils_equal;
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
+var $author$project$Main$drawTile = F2(
+	function (pnt, tile) {
+		return A2(
+			$author$project$Main$drawAt,
+			pnt,
+			A2($author$project$Terminal$color, tile.color, tile.symbol));
 	});
 var $author$project$Ansi$Cursor$hide = $author$project$Ansi$Internal$toCommand('?25l');
-var $elm$core$Basics$or = _Basics_or;
-var $elm$core$Basics$le = _Utils_le;
-var $elm$core$Basics$sub = _Basics_sub;
-var $elm$core$List$rangeHelp = F3(
-	function (lo, hi, list) {
-		rangeHelp:
-		while (true) {
-			if (_Utils_cmp(lo, hi) < 1) {
-				var $temp$lo = lo,
-					$temp$hi = hi - 1,
-					$temp$list = A2($elm$core$List$cons, hi, list);
-				lo = $temp$lo;
-				hi = $temp$hi;
-				list = $temp$list;
-				continue rangeHelp;
-			} else {
-				return list;
-			}
-		}
-	});
-var $elm$core$List$range = F2(
-	function (lo, hi) {
-		return A3($elm$core$List$rangeHelp, lo, hi, _List_Nil);
-	});
 var $author$project$Ansi$Font$resetAll = $author$project$Ansi$Internal$toCommand('0m');
 var $author$project$Ansi$setTitle = function (title) {
 	return '\u001B]0;' + (title + '\u0007');
@@ -2730,7 +2896,6 @@ var $elm$core$Result$Ok = function (a) {
 var $elm$json$Json$Decode$OneOf = function (a) {
 	return {$: 'OneOf', a: a};
 };
-var $elm$core$Basics$False = {$: 'False'};
 var $elm$core$String$all = _String_all;
 var $elm$core$Basics$and = _Basics_and;
 var $elm$json$Json$Encode$encode = _Json_encode;
@@ -2756,6 +2921,27 @@ var $elm$core$List$length = function (xs) {
 		xs);
 };
 var $elm$core$List$map2 = _List_map2;
+var $elm$core$List$rangeHelp = F3(
+	function (lo, hi, list) {
+		rangeHelp:
+		while (true) {
+			if (_Utils_cmp(lo, hi) < 1) {
+				var $temp$lo = lo,
+					$temp$hi = hi - 1,
+					$temp$list = A2($elm$core$List$cons, hi, list);
+				lo = $temp$lo;
+				hi = $temp$hi;
+				list = $temp$list;
+				continue rangeHelp;
+			} else {
+				return list;
+			}
+		}
+	});
+var $elm$core$List$range = F2(
+	function (lo, hi) {
+		return A3($elm$core$List$rangeHelp, lo, hi, _List_Nil);
+	});
 var $elm$core$List$indexedMap = F2(
 	function (f, xs) {
 		return A3(
@@ -2890,146 +3076,6 @@ var $elm$json$Json$Decode$errorToStringHelp = F2(
 			}
 		}
 	});
-var $elm$core$Array$branchFactor = 32;
-var $elm$core$Array$Array_elm_builtin = F4(
-	function (a, b, c, d) {
-		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
-	});
-var $elm$core$Elm$JsArray$empty = _JsArray_empty;
-var $elm$core$Basics$ceiling = _Basics_ceiling;
-var $elm$core$Basics$fdiv = _Basics_fdiv;
-var $elm$core$Basics$logBase = F2(
-	function (base, number) {
-		return _Basics_log(number) / _Basics_log(base);
-	});
-var $elm$core$Basics$toFloat = _Basics_toFloat;
-var $elm$core$Array$shiftStep = $elm$core$Basics$ceiling(
-	A2($elm$core$Basics$logBase, 2, $elm$core$Array$branchFactor));
-var $elm$core$Array$empty = A4($elm$core$Array$Array_elm_builtin, 0, $elm$core$Array$shiftStep, $elm$core$Elm$JsArray$empty, $elm$core$Elm$JsArray$empty);
-var $elm$core$Elm$JsArray$initialize = _JsArray_initialize;
-var $elm$core$Array$Leaf = function (a) {
-	return {$: 'Leaf', a: a};
-};
-var $elm$core$Basics$apL = F2(
-	function (f, x) {
-		return f(x);
-	});
-var $elm$core$Basics$floor = _Basics_floor;
-var $elm$core$Elm$JsArray$length = _JsArray_length;
-var $elm$core$Basics$max = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) > 0) ? x : y;
-	});
-var $elm$core$Basics$mul = _Basics_mul;
-var $elm$core$Array$SubTree = function (a) {
-	return {$: 'SubTree', a: a};
-};
-var $elm$core$Elm$JsArray$initializeFromList = _JsArray_initializeFromList;
-var $elm$core$Array$compressNodes = F2(
-	function (nodes, acc) {
-		compressNodes:
-		while (true) {
-			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, nodes);
-			var node = _v0.a;
-			var remainingNodes = _v0.b;
-			var newAcc = A2(
-				$elm$core$List$cons,
-				$elm$core$Array$SubTree(node),
-				acc);
-			if (!remainingNodes.b) {
-				return $elm$core$List$reverse(newAcc);
-			} else {
-				var $temp$nodes = remainingNodes,
-					$temp$acc = newAcc;
-				nodes = $temp$nodes;
-				acc = $temp$acc;
-				continue compressNodes;
-			}
-		}
-	});
-var $elm$core$Tuple$first = function (_v0) {
-	var x = _v0.a;
-	return x;
-};
-var $elm$core$Array$treeFromBuilder = F2(
-	function (nodeList, nodeListSize) {
-		treeFromBuilder:
-		while (true) {
-			var newNodeSize = $elm$core$Basics$ceiling(nodeListSize / $elm$core$Array$branchFactor);
-			if (newNodeSize === 1) {
-				return A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, nodeList).a;
-			} else {
-				var $temp$nodeList = A2($elm$core$Array$compressNodes, nodeList, _List_Nil),
-					$temp$nodeListSize = newNodeSize;
-				nodeList = $temp$nodeList;
-				nodeListSize = $temp$nodeListSize;
-				continue treeFromBuilder;
-			}
-		}
-	});
-var $elm$core$Array$builderToArray = F2(
-	function (reverseNodeList, builder) {
-		if (!builder.nodeListSize) {
-			return A4(
-				$elm$core$Array$Array_elm_builtin,
-				$elm$core$Elm$JsArray$length(builder.tail),
-				$elm$core$Array$shiftStep,
-				$elm$core$Elm$JsArray$empty,
-				builder.tail);
-		} else {
-			var treeLen = builder.nodeListSize * $elm$core$Array$branchFactor;
-			var depth = $elm$core$Basics$floor(
-				A2($elm$core$Basics$logBase, $elm$core$Array$branchFactor, treeLen - 1));
-			var correctNodeList = reverseNodeList ? $elm$core$List$reverse(builder.nodeList) : builder.nodeList;
-			var tree = A2($elm$core$Array$treeFromBuilder, correctNodeList, builder.nodeListSize);
-			return A4(
-				$elm$core$Array$Array_elm_builtin,
-				$elm$core$Elm$JsArray$length(builder.tail) + treeLen,
-				A2($elm$core$Basics$max, 5, depth * $elm$core$Array$shiftStep),
-				tree,
-				builder.tail);
-		}
-	});
-var $elm$core$Basics$lt = _Utils_lt;
-var $elm$core$Array$initializeHelp = F5(
-	function (fn, fromIndex, len, nodeList, tail) {
-		initializeHelp:
-		while (true) {
-			if (fromIndex < 0) {
-				return A2(
-					$elm$core$Array$builderToArray,
-					false,
-					{nodeList: nodeList, nodeListSize: (len / $elm$core$Array$branchFactor) | 0, tail: tail});
-			} else {
-				var leaf = $elm$core$Array$Leaf(
-					A3($elm$core$Elm$JsArray$initialize, $elm$core$Array$branchFactor, fromIndex, fn));
-				var $temp$fn = fn,
-					$temp$fromIndex = fromIndex - $elm$core$Array$branchFactor,
-					$temp$len = len,
-					$temp$nodeList = A2($elm$core$List$cons, leaf, nodeList),
-					$temp$tail = tail;
-				fn = $temp$fn;
-				fromIndex = $temp$fromIndex;
-				len = $temp$len;
-				nodeList = $temp$nodeList;
-				tail = $temp$tail;
-				continue initializeHelp;
-			}
-		}
-	});
-var $elm$core$Basics$remainderBy = _Basics_remainderBy;
-var $elm$core$Array$initialize = F2(
-	function (len, fn) {
-		if (len <= 0) {
-			return $elm$core$Array$empty;
-		} else {
-			var tailLen = len % $elm$core$Array$branchFactor;
-			var tail = A3($elm$core$Elm$JsArray$initialize, tailLen, len - tailLen, fn);
-			var initialFromIndex = (len - tailLen) - $elm$core$Array$branchFactor;
-			return A5($elm$core$Array$initializeHelp, fn, initialFromIndex, len, _List_Nil, tail);
-		}
-	});
-var $elm$core$Basics$True = {$: 'True'};
 var $elm$core$Result$isOk = function (result) {
 	if (result.$ === 'Ok') {
 		return true;
@@ -3039,15 +3085,6 @@ var $elm$core$Result$isOk = function (result) {
 };
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$stdout = _Platform_outgoingPort('stdout', $elm$json$Json$Encode$string);
-var $author$project$Ansi$Color$rgb = function (opts) {
-	return $author$project$Ansi$Color$Color(
-		{blue: opts.blue, green: opts.green, red: opts.red});
-};
-var $author$project$Main$gray = $author$project$Ansi$Color$rgb(
-	{blue: 5, green: 5, red: 5});
-var $author$project$Main$wall = function (pos) {
-	return {color: $author$project$Main$gray, position: pos, symbol: '#', transparent: false, walkable: false};
-};
 var $author$project$Main$render = function (model) {
 	return _Utils_Tuple2(
 		model,
@@ -3059,33 +3096,21 @@ var $author$project$Main$render = function (model) {
 						$author$project$Ansi$Font$resetAll,
 						$author$project$Ansi$clearScreen,
 						$author$project$Ansi$setTitle('Micro Dungeon'),
-						$author$project$Main$drawEntity(model.player),
-						$elm$core$String$concat(
-						A2(
-							$elm$core$List$map,
-							$author$project$Main$drawTile,
-							A2(
-								$elm$core$List$concatMap,
-								function (column) {
-									return A2(
-										$elm$core$List$filterMap,
-										function (row) {
-											return ((!row) || _Utils_eq(row, $author$project$Main$boardMax.row)) ? $elm$core$Maybe$Just(
-												$author$project$Main$wall(
-													{column: column, row: row})) : (((!column) || _Utils_eq(column, $author$project$Main$boardMax.column)) ? $elm$core$Maybe$Just(
-												$author$project$Main$wall(
-													{column: column, row: row})) : $elm$core$Maybe$Nothing);
-										},
-										A2($elm$core$List$range, 0, $author$project$Main$boardMax.row));
-								},
-								A2($elm$core$List$range, 0, $author$project$Main$boardMax.column)))),
-						'#'
+						A2($author$project$Map$draw, $author$project$Main$drawTile, model.gameMap),
+						$author$project$Main$drawEntity(model.player)
 					]))));
 };
+var $author$project$Main$wall = {color: $author$project$Main$gray, symbol: '#', transparent: false, walkable: false};
 var $author$project$Main$init = function (_v0) {
 	return $author$project$Main$render(
 		{
 			debug: '',
+			gameMap: A2(
+				$author$project$Map$init,
+				{height: $author$project$Main$boardMax.row, width: $author$project$Main$boardMax.column},
+				function (pnt) {
+					return ((!pnt.row) || _Utils_eq(pnt.row, $author$project$Main$boardMax.row)) ? $author$project$Main$wall : (((!pnt.column) || _Utils_eq(pnt.column, $author$project$Main$boardMax.column)) ? $author$project$Main$wall : $author$project$Main$floor);
+				}),
 			player: {
 				color: $author$project$Ansi$Color$green,
 				position: {column: ($author$project$Main$boardMax.column / 2) | 0, row: ($author$project$Main$boardMax.row / 2) | 0},
