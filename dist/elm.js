@@ -2364,6 +2364,43 @@ function _Platform_mergeExportsDebug(moduleName, obj, exports)
 	}
 }
 */
+
+
+
+var _Bitwise_and = F2(function(a, b)
+{
+	return a & b;
+});
+
+var _Bitwise_or = F2(function(a, b)
+{
+	return a | b;
+});
+
+var _Bitwise_xor = F2(function(a, b)
+{
+	return a ^ b;
+});
+
+function _Bitwise_complement(a)
+{
+	return ~a;
+};
+
+var _Bitwise_shiftLeftBy = F2(function(offset, a)
+{
+	return a << offset;
+});
+
+var _Bitwise_shiftRightBy = F2(function(offset, a)
+{
+	return a >> offset;
+});
+
+var _Bitwise_shiftRightZfBy = F2(function(offset, a)
+{
+	return a >>> offset;
+});
 var $author$project$Main$boardMax = {column: 80, row: 20};
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -2459,13 +2496,14 @@ var $author$project$Ansi$Color$rgb = function (opts) {
 };
 var $author$project$Main$gray = $author$project$Ansi$Color$rgb(
 	{blue: 205, green: 205, red: 205});
-var $author$project$Main$floor = {color: $author$project$Main$gray, symbol: ' ', transparent: true, walkable: true};
+var $author$project$Main$floor = {color: $author$project$Main$gray, symbol: '.', transparent: true, walkable: true};
 var $author$project$Ansi$Color$green = $author$project$Ansi$Color$Color(
 	{blue: 0, green: 255, red: 0});
 var $elm$core$Basics$idiv = _Basics_idiv;
 var $author$project$Map$Map = function (a) {
 	return {$: 'Map', a: a};
 };
+var $elm$core$Basics$add = _Basics_add;
 var $elm$core$Basics$apR = F2(
 	function (x, f) {
 		return f(x);
@@ -2495,7 +2533,6 @@ var $elm$core$Basics$apL = F2(
 	function (f, x) {
 		return f(x);
 	});
-var $elm$core$Basics$add = _Basics_add;
 var $elm$core$Basics$floor = _Basics_floor;
 var $elm$core$Elm$JsArray$length = _JsArray_length;
 var $elm$core$Basics$gt = _Utils_gt;
@@ -2641,14 +2678,14 @@ var $author$project$Map$init = F2(
 		return $author$project$Map$Map(
 			A2(
 				$elm$core$Array$initialize,
-				size.width,
+				size.columns,
 				function (column) {
 					return A2(
 						$elm$core$Array$initialize,
-						size.height,
+						size.rows,
 						function (row) {
 							return initFn(
-								{column: column, row: row});
+								{column: column + 1, row: row + 1});
 						});
 				}));
 	});
@@ -2717,7 +2754,7 @@ var $author$project$Map$draw = F2(
 										rowResult,
 										A2(
 											drawTile,
-											{column: column, row: row},
+											{column: column + 1, row: row + 1},
 											tile));
 								}),
 							'',
@@ -3107,9 +3144,9 @@ var $author$project$Main$init = function (_v0) {
 			debug: '',
 			gameMap: A2(
 				$author$project$Map$init,
-				{height: $author$project$Main$boardMax.row, width: $author$project$Main$boardMax.column},
+				{columns: $author$project$Main$boardMax.column, rows: $author$project$Main$boardMax.row},
 				function (pnt) {
-					return ((!pnt.row) || _Utils_eq(pnt.row, $author$project$Main$boardMax.row)) ? $author$project$Main$wall : (((!pnt.column) || _Utils_eq(pnt.column, $author$project$Main$boardMax.column)) ? $author$project$Main$wall : $author$project$Main$floor);
+					return ((pnt.row === 1) || (_Utils_eq(pnt.row, $author$project$Main$boardMax.row) || ((pnt.column === 1) || _Utils_eq(pnt.column, $author$project$Main$boardMax.column)))) ? $author$project$Main$wall : $author$project$Main$floor;
 				}),
 			player: {
 				color: $author$project$Ansi$Color$green,
@@ -3239,27 +3276,85 @@ var $elm$core$Result$mapError = F2(
 				f(e));
 		}
 	});
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (index >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var subTree = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
+			} else {
+				var values = _v0.a;
+				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$get = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
+			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
+			A3($elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var $author$project$Map$get = F2(
+	function (pnt, _v0) {
+		var m = _v0.a;
+		var _v1 = A2($elm$core$Array$get, pnt.column - 1, m);
+		if (_v1.$ === 'Nothing') {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var column = _v1.a;
+			return A2($elm$core$Array$get, pnt.row - 1, column);
+		}
+	});
 var $elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
-var $author$project$Main$moveBy = F2(
-	function (amount, ent) {
+var $author$project$Main$moveBy = F3(
+	function (m, amount, ent) {
 		var position = ent.position;
-		return _Utils_update(
-			ent,
-			{
-				position: {
-					column: A2(
-						$elm$core$Basics$min,
-						$author$project$Main$boardMax.column,
-						A2($elm$core$Basics$max, 0, position.column + amount.column)),
-					row: A2(
-						$elm$core$Basics$min,
-						$author$project$Main$boardMax.row,
-						A2($elm$core$Basics$max, 0, position.row + amount.row))
-				}
-			});
+		var nextPnt = {
+			column: A2(
+				$elm$core$Basics$min,
+				$author$project$Main$boardMax.column,
+				A2($elm$core$Basics$max, 1, position.column + amount.column)),
+			row: A2(
+				$elm$core$Basics$min,
+				$author$project$Main$boardMax.row,
+				A2($elm$core$Basics$max, 1, position.row + amount.row))
+		};
+		var _v0 = A2($author$project$Map$get, nextPnt, m);
+		if (_v0.$ === 'Nothing') {
+			return ent;
+		} else {
+			var tile = _v0.a;
+			return tile.walkable ? _Utils_update(
+				ent,
+				{position: nextPnt}) : ent;
+		}
 	});
 var $elm$core$Basics$negate = function (n) {
 	return -n;
@@ -3273,8 +3368,9 @@ var $author$project$Main$update = F2(
 				_Utils_update(
 					model,
 					{
-						player: A2(
+						player: A3(
 							$author$project$Main$moveBy,
+							model.gameMap,
 							$author$project$Ansi$isUpArrow(str) ? {column: 0, row: -1} : ($author$project$Ansi$isDownArrow(str) ? {column: 0, row: 1} : ($author$project$Ansi$isLeftArrow(str) ? {column: -1, row: 0} : ($author$project$Ansi$isRightArrow(str) ? {column: 1, row: 0} : {column: 0, row: 0}))),
 							model.player)
 					}));

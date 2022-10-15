@@ -6,7 +6,7 @@ import Ansi.Cursor
 import Ansi.Font
 import Json.Decode
 import Json.Encode exposing (Value)
-import Map exposing (Map, Pnt)
+import Map exposing (Map, Pnt, draw)
 import Terminal
 
 
@@ -45,7 +45,7 @@ floor : Tile
 floor =
     { walkable = True
     , transparent = True
-    , symbol = " "
+    , symbol = "."
     , color = gray
     }
 
@@ -84,14 +84,16 @@ init _ =
             }
         , gameMap =
             Map.init
-                { width = boardMax.column
-                , height = boardMax.row
+                { columns = boardMax.column
+                , rows = boardMax.row
                 }
                 (\pnt ->
-                    if pnt.row == 0 || pnt.row == boardMax.row then
-                        wall
-
-                    else if pnt.column == 0 || pnt.column == boardMax.column then
+                    if
+                        (pnt.row == 1)
+                            || (pnt.row == boardMax.row)
+                            || (pnt.column == 1)
+                            || (pnt.column == boardMax.column)
+                    then
                         wall
 
                     else
@@ -130,7 +132,7 @@ update msg model =
             { model
                 | player =
                     model.player
-                        |> moveBy
+                        |> moveBy model.gameMap
                             (if Ansi.isUpArrow str then
                                 { column = 0, row = -1 }
 
@@ -168,20 +170,30 @@ update msg model =
                 |> render
 
 
-moveBy : Pnt -> Entity -> Entity
-moveBy amount ({ position } as ent) =
-    { ent
-        | position =
+moveBy : Map Tile -> Pnt -> Entity -> Entity
+moveBy m amount ({ position } as ent) =
+    let
+        nextPnt =
             { column =
                 (position.column + amount.column)
-                    |> max 0
+                    |> max 1
                     |> min boardMax.column
             , row =
                 (position.row + amount.row)
-                    |> max 0
+                    |> max 1
                     |> min boardMax.row
             }
-    }
+    in
+    case Map.get nextPnt m of
+        Nothing ->
+            ent
+
+        Just tile ->
+            if tile.walkable then
+                { ent | position = nextPnt }
+
+            else
+                ent
 
 
 render : Model -> ( Model, Cmd Msg )

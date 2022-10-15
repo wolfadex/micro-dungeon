@@ -13,13 +13,13 @@ type Map a
     = Map (Array (Array a))
 
 
-init : { width : Int, height : Int } -> (Pnt -> a) -> Map a
+init : { columns : Int, rows : Int } -> (Pnt -> a) -> Map a
 init size initFn =
-    Array.initialize size.width
+    Array.initialize size.columns
         (\column ->
-            Array.initialize size.height
+            Array.initialize size.rows
                 (\row ->
-                    initFn { column = column, row = row }
+                    initFn { column = column + 1, row = row + 1 }
                 )
         )
         |> Map
@@ -27,12 +27,12 @@ init size initFn =
 
 get : Pnt -> Map a -> Maybe a
 get pnt (Map m) =
-    case Array.get pnt.column m of
+    case Array.get (pnt.column - 1) m of
         Nothing ->
             Nothing
 
         Just column ->
-            Array.get pnt.row column
+            Array.get (pnt.row - 1) column
 
 
 draw : (Pnt -> a -> String) -> Map a -> String
@@ -45,7 +45,7 @@ draw drawTile (Map m) =
                         (\( row, tile ) rowResult ->
                             rowResult
                                 ++ drawTile
-                                    { column = column, row = row }
+                                    { column = column + 1, row = row + 1 }
                                     tile
                         )
                         ""
