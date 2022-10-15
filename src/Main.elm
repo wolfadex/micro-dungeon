@@ -6,7 +6,7 @@ import Ansi.Cursor
 import Ansi.Font
 import Json.Decode
 import Json.Encode exposing (Value)
-import Map exposing (Map, Pnt, draw)
+import Map exposing (Map, Pnt, Rect)
 import Terminal
 
 
@@ -45,7 +45,7 @@ floor : Tile
 floor =
     { walkable = True
     , transparent = True
-    , symbol = "."
+    , symbol = " "
     , color = gray
     }
 
@@ -73,32 +73,42 @@ boardMax =
 
 init : Int -> ( Model, Cmd Msg )
 init _ =
-    render
-        { player =
-            { position =
-                { column = boardMax.column // 2
-                , row = boardMax.row // 2
-                }
-            , symbol = "☺"
-            , color = Ansi.Color.green
-            }
-        , gameMap =
+    let
+        baseMap : Map Tile
+        baseMap =
             Map.init
                 { columns = boardMax.column
                 , rows = boardMax.row
                 }
-                (\pnt ->
-                    if
-                        (pnt.row == 1)
-                            || (pnt.row == boardMax.row)
-                            || (pnt.column == 1)
-                            || (pnt.column == boardMax.column)
-                    then
-                        wall
+                (\_ -> wall)
 
-                    else
-                        floor
+        room1 : Rect
+        room1 =
+            { p1 = { column = 5, row = 3 }
+            , p2 = { column = 25, row = 12 }
+            }
+
+        room2 : Rect
+        room2 =
+            { p1 = { column = 55, row = 7 }
+            , p2 = { column = 75, row = 17 }
+            }
+    in
+    render
+        { player =
+            { position = Map.rectCenter room1
+            , symbol = "☺"
+            , color = Ansi.Color.green
+            }
+        , gameMap =
+            Map.rectFoldl
+                (\pnt -> Map.set pnt floor)
+                (Map.rectFoldl
+                    (\pnt -> Map.set pnt floor)
+                    baseMap
+                    (Map.rectInner room1)
                 )
+                (Map.rectInner room2)
         , debug = ""
         }
 
