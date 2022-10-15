@@ -1,12 +1,13 @@
 port module Main exposing (main)
 
 import Ansi
-import Ansi.Color exposing (Color, Location(..))
+import Ansi.Color exposing (Location(..))
 import Ansi.Cursor
 import Ansi.Font
-import Json.Decode
-import Json.Encode exposing (Value)
-import Map exposing (Map, Pnt, Rect)
+import Map exposing (..)
+import Map.Pnt exposing (Pnt)
+import Map.Rect exposing (Rect)
+import Random exposing (Seed)
 import Terminal
 
 
@@ -21,95 +22,38 @@ main =
 
 type alias Model =
     { player : Entity
-    , debug : String
+    , seed : Seed
     , gameMap : Map Tile
     }
-
-
-type alias Entity =
-    { position : Pnt
-    , symbol : String
-    , color : Color
-    }
-
-
-type alias Tile =
-    { walkable : Bool
-    , transparent : Bool
-    , symbol : String
-    , color : Color
-    }
-
-
-floor : Tile
-floor =
-    { walkable = True
-    , transparent = True
-    , symbol = " "
-    , color = gray
-    }
-
-
-wall : Tile
-wall =
-    { walkable = False
-    , transparent = False
-    , symbol = "#"
-    , color = gray
-    }
-
-
-gray : Color
-gray =
-    Ansi.Color.rgb { red = 205, green = 205, blue = 205 }
 
 
 boardMax : Pnt
 boardMax =
     { column = 80
-    , row = 20
+    , row = 45
     }
 
 
 init : Int -> ( Model, Cmd Msg )
-init _ =
+init randomSeedStarter =
     let
-        baseMap : Map Tile
-        baseMap =
-            Map.init
+        ( gameMap, seed ) =
+            Map.generate
                 { columns = boardMax.column
                 , rows = boardMax.row
+                , roomAttempts = 30
+                , roomExtents = { minSize = 6, maxSize = 10 }
                 }
-                (\_ -> wall)
-
-        room1 : Rect
-        room1 =
-            { p1 = { column = 5, row = 3 }
-            , p2 = { column = 25, row = 12 }
-            }
-
-        room2 : Rect
-        room2 =
-            { p1 = { column = 55, row = 7 }
-            , p2 = { column = 75, row = 17 }
-            }
+                (Random.initialSeed randomSeedStarter)
     in
     render
         { player =
-            { position = Map.rectCenter room1
+            { position = { column = 40, row = 22 }
             , symbol = "☺"
             , color = Ansi.Color.green
             }
-        , gameMap =
-            Map.rectFoldl
-                (\pnt -> Map.set pnt floor)
-                (Map.rectFoldl
-                    (\pnt -> Map.set pnt floor)
-                    baseMap
-                    (Map.rectInner room1)
-                )
-                (Map.rectInner room2)
-        , debug = ""
+        , seed = seed
+        , gameMap = gameMap
         }
 
 
@@ -117,14 +61,14 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ stdin Stdin
-        , keypress Keypress
         ]
 
 
 port stdin : (String -> msg) -> Sub msg
 
 
-port keypress : (Value -> msg) -> Sub msg
+
+-- port keypress : (Value -> msg) -> Sub msg
 
 
 port stdout : String -> Cmd msg
@@ -132,7 +76,6 @@ port stdout : String -> Cmd msg
 
 type Msg
     = Stdin String
-    | Keypress Value
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -158,24 +101,6 @@ update msg model =
                              else
                                 { column = 0, row = 0 }
                             )
-            }
-                |> render
-
-        Keypress val ->
-            { model
-                | debug =
-                    val
-                        |> Json.Decode.decodeValue Ansi.decodeKey
-                        |> Result.map Debug.toString
-                        |> Result.mapError Debug.toString
-                        |> (\r ->
-                                case r of
-                                    Ok s ->
-                                        s
-
-                                    Err s ->
-                                        s
-                           )
             }
                 |> render
 

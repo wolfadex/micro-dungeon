@@ -14,9 +14,9 @@ elmAnsi.onRawData(function (data) {
   app.ports.stdin.send(data)
 })
 
-elmAnsi.onKeypress(function (key) {
-  app.ports.keypress.send(key)
-})
+// elmAnsi.onKeypress(function (key) {
+//   app.ports.keypress.send(key)
+// })
 
 app = Elm.Main.init({
   flags: Date.now(),

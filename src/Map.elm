@@ -1,16 +1,53 @@
 module Map exposing (..)
 
+import Ansi.Color exposing (Color, Location(..))
 import Array exposing (Array)
-
-
-type alias Pnt =
-    { column : Int
-    , row : Int
-    }
+import Map.Pnt exposing (Pnt)
+import Map.Rect exposing (Rect)
+import Random exposing (Seed)
+import Random.Extra
 
 
 type Map a
     = Map (Array (Array a))
+
+
+type alias Entity =
+    { position : Pnt
+    , symbol : String
+    , color : Color
+    }
+
+
+type alias Tile =
+    { walkable : Bool
+    , transparent : Bool
+    , symbol : String
+    , color : Color
+    }
+
+
+floor : Tile
+floor =
+    { walkable = True
+    , transparent = True
+    , symbol = " "
+    , color = gray
+    }
+
+
+wall : Tile
+wall =
+    { walkable = False
+    , transparent = False
+    , symbol = "█"
+    , color = gray
+    }
+
+
+gray : Color
+gray =
+    Ansi.Color.rgb { red = 205, green = 205, blue = 205 }
 
 
 init : { columns : Int, rows : Int } -> (Pnt -> a) -> Map a
@@ -64,44 +101,151 @@ draw drawTile (Map m) =
             ""
 
 
-type alias Rect =
-    { p1 : Pnt
-    , p2 : Pnt
+addRoom : Rect -> Map Tile -> Map Tile
+addRoom r m =
+    Map.Rect.foldl
+        (\pnt -> set pnt floor)
+        m
+        (Map.Rect.inner r)
+
+
+type alias Tunnel =
+    { start : Pnt
+    , end : Pnt
     }
 
 
-rectCenter : Rect -> Pnt
-rectCenter r =
-    { column = (r.p1.column + r.p2.column) // 2
-    , row = (r.p1.row + r.p2.row) // 2
-    }
+addTunnel : Seed -> Tunnel -> Map Tile -> ( Map Tile, Seed )
+addTunnel seed t m =
+    Random.step
+        (Random.Extra.bool
+            |> Random.map
+                (\rowFirst ->
+                    if rowFirst then
+                        let
+                            across : Map Tile
+                            across =
+                                List.foldl
+                                    (\column -> set { column = column, row = t.start.row } floor)
+                                    m
+                                    (List.range t.start.column t.end.column)
+                        in
+                        List.foldl
+                            (\row -> set { column = t.end.column, row = row } floor)
+                            across
+                            (List.range t.start.row t.end.row)
 
-
-rectInner : Rect -> Rect
-rectInner r =
-    { p1 =
-        { column = r.p1.column + 1
-        , row = r.p1.row + 1
-        }
-    , p2 =
-        { column = r.p2.column - 1
-        , row = r.p2.row - 1
-        }
-    }
-
-
-{-| Iterate left to right, top to bottom across a Rect
--}
-rectFoldl : (Pnt -> a -> a) -> a -> Rect -> a
-rectFoldl fn a r =
-    List.foldl
-        (\row res ->
-            List.foldl
-                (\column result ->
-                    fn { column = column, row = row } result
+                    else
+                        let
+                            down : Map Tile
+                            down =
+                                List.foldl
+                                    (\row -> set { column = t.start.column, row = row } floor)
+                                    m
+                                    (List.range t.start.row t.end.row)
+                        in
+                        List.foldl
+                            (\column -> set { column = column, row = t.end.row } floor)
+                            down
+                            (List.range t.start.column t.end.column)
                 )
-                res
-                (List.range r.p1.column r.p2.column)
         )
-        a
-        (List.range r.p1.row r.p2.row)
+        seed
+
+
+generate :
+    { columns : Int
+    , rows : Int
+    , roomExtents :
+        { maxSize : Int
+        , minSize : Int
+        }
+    , roomAttempts : Int
+    }
+    -> Seed
+    -> ( Map Tile, Seed )
+generate config seed =
+    let
+        baseMap : Map Tile
+        baseMap =
+            init
+                { columns = config.columns
+                , rows = config.rows
+                }
+                (\_ -> wall)
+
+        ( rooms, nextSeed ) =
+            generateRooms config seed []
+
+        mapWithRooms =
+            List.foldl addRoom baseMap rooms
+
+        ( finalMap, finalSeed, _ ) =
+            List.foldr
+                (\room ( m, s, previousRoom ) ->
+                    case previousRoom of
+                        Nothing ->
+                            ( m, s, Just room )
+
+                        Just r ->
+                            let
+                                ( withTunnel, ts ) =
+                                    addTunnel s
+                                        { start = Map.Rect.center r
+                                        , end = Map.Rect.center room
+                                        }
+                                        m
+                            in
+                            ( withTunnel, ts, Just room )
+                )
+                ( mapWithRooms, nextSeed, Nothing )
+                rooms
+    in
+    ( finalMap, finalSeed )
+
+
+generateRooms :
+    { columns : Int
+    , rows : Int
+    , roomExtents :
+        { maxSize : Int
+        , minSize : Int
+        }
+    , roomAttempts : Int
+    }
+    -> Seed
+    -> List Rect
+    -> ( List Rect, Seed )
+generateRooms config seed rooms =
+    if config.roomAttempts > 0 then
+        let
+            ( room, nextSeed ) =
+                Random.step
+                    (Random.map2 Tuple.pair
+                        (Random.int config.roomExtents.minSize config.roomExtents.maxSize)
+                        (Random.int config.roomExtents.minSize config.roomExtents.maxSize)
+                        |> Random.andThen
+                            (\( width, height ) ->
+                                Random.map2
+                                    (\column row ->
+                                        { p1 = { column = column, row = row }
+                                        , p2 = { column = column + width, row = row + height }
+                                        }
+                                    )
+                                    (Random.int 1 (config.columns - width))
+                                    (Random.int 1 (config.rows - height))
+                            )
+                    )
+                    seed
+        in
+        generateRooms { config | roomAttempts = config.roomAttempts - 1 }
+            nextSeed
+            (if List.any (Map.Rect.intersect room) rooms then
+                rooms
+
+             else
+                room :: rooms
+            )
+
+    else
+        ( rooms, seed )
