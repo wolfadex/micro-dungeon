@@ -3257,7 +3257,7 @@ var $author$project$Map$generate = F2(
 		var baseMap = A2(
 			$author$project$Map$init,
 			{columns: config.columns, rows: config.rows},
-			function (_v5) {
+			function (_v6) {
 				return $author$project$Map$wall;
 			});
 		var _v0 = A3($author$project$Map$generateRooms, config, seed, _List_Nil);
@@ -3298,7 +3298,18 @@ var $author$project$Map$generate = F2(
 			rooms);
 		var finalMap = _v1.a;
 		var finalSeed = _v1.b;
-		return _Utils_Tuple2(finalMap, finalSeed);
+		return _Utils_Tuple3(
+			finalMap,
+			finalSeed,
+			function () {
+				var _v5 = $elm$core$List$reverse(rooms);
+				if (!_v5.b) {
+					return {column: (config.columns / 2) | 0, row: (config.rows / 2) | 0};
+				} else {
+					var firstRoom = _v5.a;
+					return $author$project$Map$Rect$center(firstRoom);
+				}
+			}());
 	});
 var $author$project$Ansi$Color$green = $author$project$Ansi$Color$Color(
 	{blue: 0, green: 255, red: 0});
@@ -3676,14 +3687,11 @@ var $author$project$Main$init = function (randomSeedStarter) {
 		$elm$random$Random$initialSeed(randomSeedStarter));
 	var gameMap = _v0.a;
 	var seed = _v0.b;
+	var startPos = _v0.c;
 	return $author$project$Main$render(
 		{
 			gameMap: gameMap,
-			player: {
-				color: $author$project$Ansi$Color$green,
-				position: {column: 40, row: 22},
-				symbol: '☺'
-			},
+			player: {color: $author$project$Ansi$Color$green, position: startPos, symbol: '☺'},
 			seed: seed
 		});
 };

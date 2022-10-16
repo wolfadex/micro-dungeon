@@ -37,7 +37,7 @@ boardMax =
 init : Int -> ( Model, Cmd Msg )
 init randomSeedStarter =
     let
-        ( gameMap, seed ) =
+        ( gameMap, seed, startPos ) =
             Map.generate
                 { columns = boardMax.column
                 , rows = boardMax.row
@@ -48,7 +48,7 @@ init randomSeedStarter =
     in
     render
         { player =
-            { position = { column = 40, row = 22 }
+            { position = startPos
             , symbol = "☺"
             , color = Ansi.Color.green
             }
