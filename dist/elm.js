@@ -2901,6 +2901,14 @@ var $elm_community$random_extra$Random$Extra$bool = A2(
 	true,
 	_List_fromArray(
 		[false]));
+var $elm$core$Basics$max = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) > 0) ? x : y;
+	});
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
 var $elm$random$Random$step = F2(
 	function (_v0, seed) {
 		var generator = _v0.a;
@@ -2923,7 +2931,10 @@ var $author$project$Map$addTunnel = F3(
 									$author$project$Map$floor);
 							},
 							m,
-							A2($elm$core$List$range, t.start.column, t.end.column));
+							A2(
+								$elm$core$List$range,
+								A2($elm$core$Basics$min, t.start.column, t.end.column),
+								A2($elm$core$Basics$max, t.start.column, t.end.column)));
 						return A3(
 							$elm$core$List$foldl,
 							function (row) {
@@ -2933,7 +2944,10 @@ var $author$project$Map$addTunnel = F3(
 									$author$project$Map$floor);
 							},
 							across,
-							A2($elm$core$List$range, t.start.row, t.end.row));
+							A2(
+								$elm$core$List$range,
+								A2($elm$core$Basics$min, t.start.row, t.end.row),
+								A2($elm$core$Basics$max, t.start.row, t.end.row)));
 					} else {
 						var down = A3(
 							$elm$core$List$foldl,
@@ -2944,7 +2958,10 @@ var $author$project$Map$addTunnel = F3(
 									$author$project$Map$floor);
 							},
 							m,
-							A2($elm$core$List$range, t.start.row, t.end.row));
+							A2(
+								$elm$core$List$range,
+								A2($elm$core$Basics$min, t.start.row, t.end.row),
+								A2($elm$core$Basics$max, t.start.row, t.end.row)));
 						return A3(
 							$elm$core$List$foldl,
 							function (column) {
@@ -2954,7 +2971,10 @@ var $author$project$Map$addTunnel = F3(
 									$author$project$Map$floor);
 							},
 							down,
-							A2($elm$core$List$range, t.start.column, t.end.column));
+							A2(
+								$elm$core$List$range,
+								A2($elm$core$Basics$min, t.start.column, t.end.column),
+								A2($elm$core$Basics$max, t.start.column, t.end.column)));
 					}
 				},
 				$elm_community$random_extra$Random$Extra$bool),
@@ -3112,10 +3132,6 @@ var $elm$core$Array$empty = A4($elm$core$Array$Array_elm_builtin, 0, $elm$core$A
 var $elm$core$Elm$JsArray$initialize = _JsArray_initialize;
 var $elm$core$Basics$floor = _Basics_floor;
 var $elm$core$Elm$JsArray$length = _JsArray_length;
-var $elm$core$Basics$max = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) > 0) ? x : y;
-	});
 var $elm$core$Elm$JsArray$initializeFromList = _JsArray_initializeFromList;
 var $elm$core$Array$compressNodes = F2(
 	function (nodes, acc) {
@@ -3745,10 +3761,6 @@ var $author$project$Map$get = F2(
 			var column = _v1.a;
 			return A2($elm$core$Array$get, pnt.row - 1, column);
 		}
-	});
-var $elm$core$Basics$min = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
 var $author$project$Main$moveBy = F3(
 	function (m, amount, ent) {

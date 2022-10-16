@@ -128,12 +128,18 @@ addTunnel seed t m =
                                 List.foldl
                                     (\column -> set { column = column, row = t.start.row } floor)
                                     m
-                                    (List.range t.start.column t.end.column)
+                                    (List.range
+                                        (min t.start.column t.end.column)
+                                        (max t.start.column t.end.column)
+                                    )
                         in
                         List.foldl
                             (\row -> set { column = t.end.column, row = row } floor)
                             across
-                            (List.range t.start.row t.end.row)
+                            (List.range
+                                (min t.start.row t.end.row)
+                                (max t.start.row t.end.row)
+                            )
 
                     else
                         let
@@ -142,12 +148,18 @@ addTunnel seed t m =
                                 List.foldl
                                     (\row -> set { column = t.start.column, row = row } floor)
                                     m
-                                    (List.range t.start.row t.end.row)
+                                    (List.range
+                                        (min t.start.row t.end.row)
+                                        (max t.start.row t.end.row)
+                                    )
                         in
                         List.foldl
                             (\column -> set { column = column, row = t.end.row } floor)
                             down
-                            (List.range t.start.column t.end.column)
+                            (List.range
+                                (min t.start.column t.end.column)
+                                (max t.start.column t.end.column)
+                            )
                 )
         )
         seed
