@@ -2482,24 +2482,121 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
-var $elm$core$Maybe$Just = function (a) {
-	return {$: 'Just', a: a};
+var $elm$core$Basics$apR = F2(
+	function (x, f) {
+		return f(x);
+	});
+var $author$project$Map$Pnt$Pnt = F2(
+	function (column, row) {
+		return {column: column, row: row};
+	});
+var $elm$core$Basics$add = _Basics_add;
+var $elm$core$Basics$append = _Utils_append;
+var $elm$core$Basics$sub = _Basics_sub;
+var $author$project$Map$Shapes$addPoints = F5(
+	function (cx, cy, x, y, points) {
+		return _Utils_ap(
+			points,
+			_List_fromArray(
+				[
+					A2($author$project$Map$Pnt$Pnt, cx + x, cy + y),
+					A2($author$project$Map$Pnt$Pnt, cx - x, cy + y),
+					A2($author$project$Map$Pnt$Pnt, cx + x, cy - y),
+					A2($author$project$Map$Pnt$Pnt, cx - x, cy - y)
+				]));
+	});
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Basics$le = _Utils_le;
+var $elm$core$Basics$mul = _Basics_mul;
+var $elm$core$Basics$pow = _Basics_pow;
+var $author$project$Map$Shapes$ellipseLoopFirst = F5(
+	function (c, _v0, sigma, _v1, positions) {
+		ellipseLoopFirst:
+		while (true) {
+			var column = _v0.column;
+			var row = _v0.row;
+			var width = _v1.width;
+			var height = _v1.height;
+			if (_Utils_cmp(
+				column * A2($elm$core$Basics$pow, height, 2),
+				row * A2($elm$core$Basics$pow, width, 2)) < 1) {
+				var _v2 = (sigma >= 0) ? _Utils_Tuple2(
+					1,
+					(4 * A2($elm$core$Basics$pow, width, 2)) * (1 - row)) : _Utils_Tuple2(0, 0);
+				var dy = _v2.a;
+				var dSigma = _v2.b;
+				var $temp$c = c,
+					$temp$_v0 = A2($author$project$Map$Pnt$Pnt, column + 1, row - dy),
+					$temp$sigma = (sigma + dSigma) + (A2($elm$core$Basics$pow, height, 2) * ((4 * column) + 6)),
+					$temp$_v1 = {height: height, width: width},
+					$temp$positions = A5($author$project$Map$Shapes$addPoints, c.column, c.row, column, row, positions);
+				c = $temp$c;
+				_v0 = $temp$_v0;
+				sigma = $temp$sigma;
+				_v1 = $temp$_v1;
+				positions = $temp$positions;
+				continue ellipseLoopFirst;
+			} else {
+				return positions;
+			}
+		}
+	});
+var $author$project$Map$Shapes$ellipseLoopSecond = F5(
+	function (c, _v0, sigma, _v1, positions) {
+		ellipseLoopSecond:
+		while (true) {
+			var column = _v0.column;
+			var row = _v0.row;
+			var width = _v1.width;
+			var height = _v1.height;
+			if (_Utils_cmp(
+				row * A2($elm$core$Basics$pow, width, 2),
+				column * A2($elm$core$Basics$pow, height, 2)) < 1) {
+				var _v2 = (sigma >= 0) ? _Utils_Tuple2(
+					1,
+					(4 * A2($elm$core$Basics$pow, height, 2)) * (1 - column)) : _Utils_Tuple2(0, 0);
+				var dx = _v2.a;
+				var dSigma = _v2.b;
+				var $temp$c = c,
+					$temp$_v0 = A2($author$project$Map$Pnt$Pnt, column - dx, row + 1),
+					$temp$sigma = (sigma + dSigma) + (A2($elm$core$Basics$pow, width, 2) * ((4 * row) + 6)),
+					$temp$_v1 = {height: height, width: width},
+					$temp$positions = A5($author$project$Map$Shapes$addPoints, c.column, c.row, column, row, positions);
+				c = $temp$c;
+				_v0 = $temp$_v0;
+				sigma = $temp$sigma;
+				_v1 = $temp$_v1;
+				positions = $temp$positions;
+				continue ellipseLoopSecond;
+			} else {
+				return positions;
+			}
+		}
+	});
+var $author$project$Map$Shapes$ellipse = F2(
+	function (size, center) {
+		var width = size.width;
+		var height = size.height;
+		var secondHalf = A5(
+			$author$project$Map$Shapes$ellipseLoopSecond,
+			center,
+			A2($author$project$Map$Pnt$Pnt, width, 0),
+			(2 * A2($elm$core$Basics$pow, width, 2)) + (A2($elm$core$Basics$pow, height, 2) * (1 - (2 * width))),
+			size,
+			_List_Nil);
+		var firstHalf = A5(
+			$author$project$Map$Shapes$ellipseLoopFirst,
+			center,
+			A2($author$project$Map$Pnt$Pnt, 0, height),
+			(2 * A2($elm$core$Basics$pow, width, 2)) + (A2($elm$core$Basics$pow, height, 2) * (1 - (2 * height))),
+			size,
+			_List_Nil);
+		return _Utils_ap(firstHalf, secondHalf);
+	});
+var $author$project$Map$Shapes$circle = function (diameter) {
+	return $author$project$Map$Shapes$ellipse(
+		{height: diameter, width: diameter});
 };
-var $elm$core$Maybe$Nothing = {$: 'Nothing'};
-var $elm$core$Basics$True = {$: 'True'};
-var $elm$core$Basics$identity = function (x) {
-	return x;
-};
-var $author$project$Ansi$Color$Color = function (a) {
-	return {$: 'Color', a: a};
-};
-var $author$project$Ansi$Color$rgb = function (opts) {
-	return $author$project$Ansi$Color$Color(
-		{blue: opts.blue, green: opts.green, red: opts.red});
-};
-var $author$project$Map$gray = $author$project$Ansi$Color$rgb(
-	{blue: 205, green: 205, red: 205});
-var $author$project$Map$floor = {color: $author$project$Map$gray, symbol: ' ', transparent: true, walkable: true};
 var $elm$core$List$foldl = F3(
 	function (func, acc, list) {
 		foldl:
@@ -2519,8 +2616,375 @@ var $elm$core$List$foldl = F3(
 			}
 		}
 	});
-var $elm$core$Basics$le = _Utils_le;
-var $elm$core$Basics$sub = _Basics_sub;
+var $elm$core$Basics$gt = _Utils_gt;
+var $elm$core$List$reverse = function (list) {
+	return A3($elm$core$List$foldl, $elm$core$List$cons, _List_Nil, list);
+};
+var $elm$core$List$foldrHelper = F4(
+	function (fn, acc, ctr, ls) {
+		if (!ls.b) {
+			return acc;
+		} else {
+			var a = ls.a;
+			var r1 = ls.b;
+			if (!r1.b) {
+				return A2(fn, a, acc);
+			} else {
+				var b = r1.a;
+				var r2 = r1.b;
+				if (!r2.b) {
+					return A2(
+						fn,
+						a,
+						A2(fn, b, acc));
+				} else {
+					var c = r2.a;
+					var r3 = r2.b;
+					if (!r3.b) {
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(fn, c, acc)));
+					} else {
+						var d = r3.a;
+						var r4 = r3.b;
+						var res = (ctr > 500) ? A3(
+							$elm$core$List$foldl,
+							fn,
+							acc,
+							$elm$core$List$reverse(r4)) : A4($elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(
+									fn,
+									c,
+									A2(fn, d, res))));
+					}
+				}
+			}
+		}
+	});
+var $elm$core$List$foldr = F3(
+	function (fn, acc, ls) {
+		return A4($elm$core$List$foldrHelper, fn, acc, 0, ls);
+	});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						$elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
+	});
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $elm$core$Basics$identity = function (x) {
+	return x;
+};
+var $author$project$AssocSet$Set = function (a) {
+	return {$: 'Set', a: a};
+};
+var $pzp1997$assoc_list$AssocList$D = function (a) {
+	return {$: 'D', a: a};
+};
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $elm$core$Basics$neq = _Utils_notEqual;
+var $pzp1997$assoc_list$AssocList$remove = F2(
+	function (targetKey, _v0) {
+		var alist = _v0.a;
+		return $pzp1997$assoc_list$AssocList$D(
+			A2(
+				$elm$core$List$filter,
+				function (_v1) {
+					var key = _v1.a;
+					return !_Utils_eq(key, targetKey);
+				},
+				alist));
+	});
+var $pzp1997$assoc_list$AssocList$insert = F3(
+	function (key, value, dict) {
+		var _v0 = A2($pzp1997$assoc_list$AssocList$remove, key, dict);
+		var alteredAlist = _v0.a;
+		return $pzp1997$assoc_list$AssocList$D(
+			A2(
+				$elm$core$List$cons,
+				_Utils_Tuple2(key, value),
+				alteredAlist));
+	});
+var $pzp1997$assoc_list$AssocList$fromList = function (alist) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, result) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($pzp1997$assoc_list$AssocList$insert, key, value, result);
+			}),
+		$pzp1997$assoc_list$AssocList$D(_List_Nil),
+		alist);
+};
+var $author$project$AssocSet$fromList = function (list) {
+	return $author$project$AssocSet$Set(
+		$pzp1997$assoc_list$AssocList$fromList(
+			A2(
+				$elm$core$List$map,
+				function (a) {
+					return _Utils_Tuple2(a, _Utils_Tuple0);
+				},
+				list)));
+};
+var $elm$core$Maybe$Nothing = {$: 'Nothing'};
+var $elm$core$Maybe$Just = function (a) {
+	return {$: 'Just', a: a};
+};
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Basics$apL = F2(
+	function (f, x) {
+		return f(x);
+	});
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$branchFactor = 32;
+var $elm$core$Basics$ceiling = _Basics_ceiling;
+var $elm$core$Basics$fdiv = _Basics_fdiv;
+var $elm$core$Basics$logBase = F2(
+	function (base, number) {
+		return _Basics_log(number) / _Basics_log(base);
+	});
+var $elm$core$Basics$toFloat = _Basics_toFloat;
+var $elm$core$Array$shiftStep = $elm$core$Basics$ceiling(
+	A2($elm$core$Basics$logBase, 2, $elm$core$Array$branchFactor));
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (index >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var subTree = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
+			} else {
+				var values = _v0.a;
+				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var $elm$core$Basics$lt = _Utils_lt;
+var $elm$core$Basics$or = _Basics_or;
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$get = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
+			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
+			A3($elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var $author$project$Map$get = F2(
+	function (pnt, _v0) {
+		var m = _v0.a;
+		var _v1 = A2($elm$core$Array$get, pnt.column - 1, m);
+		if (_v1.$ === 'Nothing') {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var column = _v1.a;
+			return A2($elm$core$Array$get, pnt.row - 1, column);
+		}
+	});
+var $author$project$Main$keepUntil = F3(
+	function (m, result, input) {
+		keepUntil:
+		while (true) {
+			if (!input.b) {
+				return $elm$core$List$reverse(result);
+			} else {
+				var next = input.a;
+				var rest = input.b;
+				var _v1 = A2($author$project$Map$get, next, m);
+				if (_v1.$ === 'Nothing') {
+					var $temp$m = m,
+						$temp$result = A2($elm$core$List$cons, next, result),
+						$temp$input = _List_Nil;
+					m = $temp$m;
+					result = $temp$result;
+					input = $temp$input;
+					continue keepUntil;
+				} else {
+					var t = _v1.a;
+					if (t.transparent) {
+						var $temp$m = m,
+							$temp$result = A2($elm$core$List$cons, next, result),
+							$temp$input = rest;
+						m = $temp$m;
+						result = $temp$result;
+						input = $temp$input;
+						continue keepUntil;
+					} else {
+						var $temp$m = m,
+							$temp$result = A2($elm$core$List$cons, next, result),
+							$temp$input = _List_Nil;
+						m = $temp$m;
+						result = $temp$result;
+						input = $temp$input;
+						continue keepUntil;
+					}
+				}
+			}
+		}
+	});
+var $author$project$Map$Shapes$LineStatics = F6(
+	function (fx, fy, sx, sy, dx, dy) {
+		return {dx: dx, dy: dy, fx: fx, fy: fy, sx: sx, sy: sy};
+	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $author$project$Map$Shapes$initLine = F2(
+	function (p, q) {
+		var sy = (_Utils_cmp(p.row, q.row) > 0) ? 1 : (-1);
+		var sx = (_Utils_cmp(p.column, q.column) > 0) ? 1 : (-1);
+		var dy = A2($elm$core$Basics$composeL, $elm$core$Basics$toFloat, $elm$core$Basics$abs)(p.row - q.row);
+		var dx = A2($elm$core$Basics$composeL, $elm$core$Basics$toFloat, $elm$core$Basics$abs)(p.column - q.column);
+		var error = (_Utils_cmp(dx, dy) > 0) ? (dx / 2) : ((-dy) / 2);
+		return _Utils_Tuple2(
+			A6($author$project$Map$Shapes$LineStatics, p.column, p.row, sx, sy, dx, dy),
+			error);
+	});
+var $elm$core$Basics$and = _Basics_and;
+var $author$project$Map$Shapes$calcError = F3(
+	function (_v0, error, p) {
+		var sx = _v0.sx;
+		var sy = _v0.sy;
+		var dx = _v0.dx;
+		var dy = _v0.dy;
+		var _v1 = (_Utils_cmp(error, dy) < 0) ? _Utils_Tuple2(dx, sy + p.row) : _Utils_Tuple2(0, p.row);
+		var errY = _v1.a;
+		var y = _v1.b;
+		var _v2 = (_Utils_cmp(error, -dx) > 0) ? _Utils_Tuple2(-dy, sx + p.column) : _Utils_Tuple2(0, p.column);
+		var errX = _v2.a;
+		var x = _v2.b;
+		return _Utils_Tuple2(
+			(error + errX) + errY,
+			A2($author$project$Map$Pnt$Pnt, x, y));
+	});
+var $elm$core$Basics$eq = _Utils_equal;
+var $author$project$Map$Shapes$lineLoop = F4(
+	function (statics, error, p, positions) {
+		lineLoop:
+		while (true) {
+			var column = p.column;
+			var row = p.row;
+			if (_Utils_eq(column, statics.fx) && _Utils_eq(row, statics.fy)) {
+				return A2($elm$core$List$cons, p, positions);
+			} else {
+				var _v0 = A3($author$project$Map$Shapes$calcError, statics, error, p);
+				var error_ = _v0.a;
+				var q = _v0.b;
+				var $temp$statics = statics,
+					$temp$error = error_,
+					$temp$p = q,
+					$temp$positions = A2($elm$core$List$cons, p, positions);
+				statics = $temp$statics;
+				error = $temp$error;
+				p = $temp$p;
+				positions = $temp$positions;
+				continue lineLoop;
+			}
+		}
+	});
+var $author$project$Map$Shapes$line = F2(
+	function (p0, p1) {
+		var _v0 = A2($author$project$Map$Shapes$initLine, p1, p0);
+		var statics = _v0.a;
+		var error = _v0.b;
+		return A4($author$project$Map$Shapes$lineLoop, statics, error, p0, _List_Nil);
+	});
+var $author$project$Main$calculateVision = function (model) {
+	return $author$project$AssocSet$fromList(
+		A2(
+			$elm$core$List$concatMap,
+			function (edgePnt) {
+				return A3(
+					$author$project$Main$keepUntil,
+					model.gameMap,
+					_List_Nil,
+					$elm$core$List$reverse(
+						A2($author$project$Map$Shapes$line, model.player.position, edgePnt)));
+			},
+			A2($author$project$Map$Shapes$circle, 8, model.player.position)));
+};
+var $pzp1997$assoc_list$AssocList$empty = $pzp1997$assoc_list$AssocList$D(_List_Nil);
+var $author$project$AssocSet$empty = $author$project$AssocSet$Set($pzp1997$assoc_list$AssocList$empty);
+var $elm$core$Basics$True = {$: 'True'};
+var $author$project$Ansi$Color$Color = function (a) {
+	return {$: 'Color', a: a};
+};
+var $author$project$Ansi$Color$rgb = function (opts) {
+	return $author$project$Ansi$Color$Color(
+		{blue: opts.blue, green: opts.green, red: opts.red});
+};
+var $author$project$Map$gray = $author$project$Ansi$Color$rgb(
+	{blue: 105, green: 105, red: 105});
+var $author$project$Map$floor = {color: $author$project$Map$gray, symbol: ' ', transparent: true, walkable: true};
 var $elm$core$List$rangeHelp = F3(
 	function (lo, hi, list) {
 		rangeHelp:
@@ -2563,7 +3027,6 @@ var $author$project$Map$Rect$foldl = F3(
 			a,
 			A2($elm$core$List$range, r.p1.row, r.p2.row));
 	});
-var $elm$core$Basics$add = _Basics_add;
 var $author$project$Map$Rect$inner = function (r) {
 	return {
 		p1: {column: r.p1.column + 1, row: r.p1.row + 1},
@@ -2573,68 +3036,6 @@ var $author$project$Map$Rect$inner = function (r) {
 var $author$project$Map$Map = function (a) {
 	return {$: 'Map', a: a};
 };
-var $elm$core$Bitwise$and = _Bitwise_and;
-var $elm$core$Basics$apL = F2(
-	function (f, x) {
-		return f(x);
-	});
-var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
-var $elm$core$Array$branchFactor = 32;
-var $elm$core$Basics$ceiling = _Basics_ceiling;
-var $elm$core$Basics$fdiv = _Basics_fdiv;
-var $elm$core$Basics$logBase = F2(
-	function (base, number) {
-		return _Basics_log(number) / _Basics_log(base);
-	});
-var $elm$core$Basics$toFloat = _Basics_toFloat;
-var $elm$core$Array$shiftStep = $elm$core$Basics$ceiling(
-	A2($elm$core$Basics$logBase, 2, $elm$core$Array$branchFactor));
-var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
-var $elm$core$Basics$ge = _Utils_ge;
-var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
-var $elm$core$Array$getHelp = F3(
-	function (shift, index, tree) {
-		getHelp:
-		while (true) {
-			var pos = $elm$core$Array$bitMask & (index >>> shift);
-			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
-			if (_v0.$ === 'SubTree') {
-				var subTree = _v0.a;
-				var $temp$shift = shift - $elm$core$Array$shiftStep,
-					$temp$index = index,
-					$temp$tree = subTree;
-				shift = $temp$shift;
-				index = $temp$index;
-				tree = $temp$tree;
-				continue getHelp;
-			} else {
-				var values = _v0.a;
-				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
-			}
-		}
-	});
-var $elm$core$Basics$lt = _Utils_lt;
-var $elm$core$Basics$or = _Basics_or;
-var $elm$core$Basics$apR = F2(
-	function (x, f) {
-		return f(x);
-	});
-var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
-var $elm$core$Array$tailIndex = function (len) {
-	return (len >>> 5) << 5;
-};
-var $elm$core$Array$get = F2(
-	function (index, _v0) {
-		var len = _v0.a;
-		var startShift = _v0.b;
-		var tree = _v0.c;
-		var tail = _v0.d;
-		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
-			index,
-			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
-			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
-			A3($elm$core$Array$getHelp, startShift, index, tree)));
-	});
 var $elm$core$Array$Array_elm_builtin = F4(
 	function (a, b, c, d) {
 		return {$: 'Array_elm_builtin', a: a, b: b, c: c, d: d};
@@ -2718,89 +3119,9 @@ var $elm$core$Basics$False = {$: 'False'};
 var $elm$random$Random$addOne = function (value) {
 	return _Utils_Tuple2(1, value);
 };
-var $elm$core$Basics$gt = _Utils_gt;
-var $elm$core$List$reverse = function (list) {
-	return A3($elm$core$List$foldl, $elm$core$List$cons, _List_Nil, list);
-};
-var $elm$core$List$foldrHelper = F4(
-	function (fn, acc, ctr, ls) {
-		if (!ls.b) {
-			return acc;
-		} else {
-			var a = ls.a;
-			var r1 = ls.b;
-			if (!r1.b) {
-				return A2(fn, a, acc);
-			} else {
-				var b = r1.a;
-				var r2 = r1.b;
-				if (!r2.b) {
-					return A2(
-						fn,
-						a,
-						A2(fn, b, acc));
-				} else {
-					var c = r2.a;
-					var r3 = r2.b;
-					if (!r3.b) {
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(fn, c, acc)));
-					} else {
-						var d = r3.a;
-						var r4 = r3.b;
-						var res = (ctr > 500) ? A3(
-							$elm$core$List$foldl,
-							fn,
-							acc,
-							$elm$core$List$reverse(r4)) : A4($elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(
-									fn,
-									c,
-									A2(fn, d, res))));
-					}
-				}
-			}
-		}
-	});
-var $elm$core$List$foldr = F3(
-	function (fn, acc, ls) {
-		return A4($elm$core$List$foldrHelper, fn, acc, 0, ls);
-	});
-var $elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						$elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
 var $elm$random$Random$Generator = function (a) {
 	return {$: 'Generator', a: a};
 };
-var $elm$core$Basics$mul = _Basics_mul;
 var $elm$random$Random$Seed = F2(
 	function (a, b) {
 		return {$: 'Seed', a: a, b: b};
@@ -3018,7 +3339,6 @@ var $elm$core$List$any = F2(
 			}
 		}
 	});
-var $elm$core$Basics$eq = _Utils_equal;
 var $elm$core$Basics$remainderBy = _Basics_remainderBy;
 var $elm$random$Random$int = F2(
 	function (a, b) {
@@ -3251,7 +3571,13 @@ var $author$project$Map$init = F2(
 						});
 				}));
 	});
-var $author$project$Map$wall = {color: $author$project$Map$gray, symbol: '█', transparent: false, walkable: false};
+var $author$project$Map$wall = {
+	color: $author$project$Ansi$Color$rgb(
+		{blue: 155, green: 205, red: 205}),
+	symbol: '█',
+	transparent: false,
+	walkable: false
+};
 var $author$project$Map$generate = F2(
 	function (config, seed) {
 		var baseMap = A2(
@@ -3322,7 +3648,6 @@ var $elm$random$Random$initialSeed = function (x) {
 	return $elm$random$Random$next(
 		A2($elm$random$Random$Seed, state2, incr));
 };
-var $elm$core$Basics$append = _Utils_append;
 var $author$project$Ansi$Internal$commandStr = '\u001B[';
 var $author$project$Ansi$Internal$toCommand = function (str) {
 	return _Utils_ap($author$project$Ansi$Internal$commandStr, str);
@@ -3338,59 +3663,6 @@ var $elm$core$String$join = F2(
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
-var $elm$core$Array$toIndexedList = function (array) {
-	var len = array.a;
-	var helper = F2(
-		function (entry, _v0) {
-			var index = _v0.a;
-			var list = _v0.b;
-			return _Utils_Tuple2(
-				index - 1,
-				A2(
-					$elm$core$List$cons,
-					_Utils_Tuple2(index, entry),
-					list));
-		});
-	return A3(
-		$elm$core$Array$foldr,
-		helper,
-		_Utils_Tuple2(len - 1, _List_Nil),
-		array).b;
-};
-var $author$project$Map$draw = F2(
-	function (drawTile, _v0) {
-		var m = _v0.a;
-		return A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v1, columnResult) {
-					var column = _v1.a;
-					var columnData = _v1.b;
-					return _Utils_ap(
-						columnResult,
-						A3(
-							$elm$core$List$foldl,
-							F2(
-								function (_v2, rowResult) {
-									var row = _v2.a;
-									var tile = _v2.b;
-									return _Utils_ap(
-										rowResult,
-										A2(
-											drawTile,
-											{column: column + 1, row: row + 1},
-											tile));
-								}),
-							'',
-							$elm$core$Array$toIndexedList(columnData)));
-				}),
-			'',
-			$elm$core$Array$toIndexedList(m));
-	});
 var $author$project$Ansi$Color$Foreground = {$: 'Foreground'};
 var $author$project$Ansi$Color$encodeLocation = function (loc) {
 	if (loc.$ === 'Foreground') {
@@ -3447,6 +3719,118 @@ var $author$project$Ansi$Cursor$moveTo = function (to) {
 	return $author$project$Ansi$Internal$toCommand(
 		$elm$core$String$fromInt(to.row) + (';' + ($elm$core$String$fromInt(to.column) + 'H')));
 };
+var $author$project$Map$drawAt = F2(
+	function (loc, str) {
+		return _Utils_ap(
+			$author$project$Ansi$Cursor$moveTo(loc),
+			str);
+	});
+var $author$project$Map$drawTile = F3(
+	function (canSee, pnt, tile) {
+		return A2(
+			$author$project$Map$drawAt,
+			pnt,
+			A2(
+				$author$project$Terminal$color,
+				canSee ? tile.color : $author$project$Map$gray,
+				tile.symbol));
+	});
+var $pzp1997$assoc_list$AssocList$get = F2(
+	function (targetKey, _v0) {
+		get:
+		while (true) {
+			var alist = _v0.a;
+			if (!alist.b) {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var _v2 = alist.a;
+				var key = _v2.a;
+				var value = _v2.b;
+				var rest = alist.b;
+				if (_Utils_eq(key, targetKey)) {
+					return $elm$core$Maybe$Just(value);
+				} else {
+					var $temp$targetKey = targetKey,
+						$temp$_v0 = $pzp1997$assoc_list$AssocList$D(rest);
+					targetKey = $temp$targetKey;
+					_v0 = $temp$_v0;
+					continue get;
+				}
+			}
+		}
+	});
+var $pzp1997$assoc_list$AssocList$member = F2(
+	function (targetKey, dict) {
+		var _v0 = A2($pzp1997$assoc_list$AssocList$get, targetKey, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $author$project$AssocSet$member = F2(
+	function (a, _v0) {
+		var s = _v0.a;
+		return A2($pzp1997$assoc_list$AssocList$member, a, s);
+	});
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$Array$toIndexedList = function (array) {
+	var len = array.a;
+	var helper = F2(
+		function (entry, _v0) {
+			var index = _v0.a;
+			var list = _v0.b;
+			return _Utils_Tuple2(
+				index - 1,
+				A2(
+					$elm$core$List$cons,
+					_Utils_Tuple2(index, entry),
+					list));
+		});
+	return A3(
+		$elm$core$Array$foldr,
+		helper,
+		_Utils_Tuple2(len - 1, _List_Nil),
+		array).b;
+};
+var $author$project$Map$draw = F2(
+	function (_v0, _v1) {
+		var hasSeen = _v0.hasSeen;
+		var canSee = _v0.canSee;
+		var m = _v1.a;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v2, columnResult) {
+					var column = _v2.a;
+					var columnData = _v2.b;
+					return _Utils_ap(
+						columnResult,
+						A3(
+							$elm$core$List$foldl,
+							F2(
+								function (_v3, rowResult) {
+									var row = _v3.a;
+									var tile = _v3.b;
+									return _Utils_ap(
+										rowResult,
+										function () {
+											var pnt = {column: column + 1, row: row + 1};
+											return A2($author$project$AssocSet$member, pnt, canSee) ? A3($author$project$Map$drawTile, true, pnt, tile) : (A2($author$project$AssocSet$member, pnt, hasSeen) ? A3($author$project$Map$drawTile, false, pnt, tile) : A2(
+												$author$project$Map$drawAt,
+												pnt,
+												A2($author$project$Terminal$color, $author$project$Map$gray, '░')));
+										}());
+								}),
+							'',
+							$elm$core$Array$toIndexedList(columnData)));
+				}),
+			'',
+			$elm$core$Array$toIndexedList(m));
+	});
 var $author$project$Main$drawAt = F2(
 	function (loc, str) {
 		return _Utils_ap(
@@ -3459,13 +3843,6 @@ var $author$project$Main$drawEntity = function (ent) {
 		ent.position,
 		A2($author$project$Terminal$color, ent.color, ent.symbol));
 };
-var $author$project$Main$drawTile = F2(
-	function (pnt, tile) {
-		return A2(
-			$author$project$Main$drawAt,
-			pnt,
-			A2($author$project$Terminal$color, tile.color, tile.symbol));
-	});
 var $author$project$Ansi$Cursor$hide = $author$project$Ansi$Internal$toCommand('?25l');
 var $author$project$Ansi$Font$resetAll = $author$project$Ansi$Internal$toCommand('0m');
 var $author$project$Ansi$setTitle = function (title) {
@@ -3493,7 +3870,6 @@ var $elm$json$Json$Decode$OneOf = function (a) {
 	return {$: 'OneOf', a: a};
 };
 var $elm$core$String$all = _String_all;
-var $elm$core$Basics$and = _Basics_and;
 var $elm$json$Json$Encode$encode = _Json_encode;
 var $elm$core$String$split = F2(
 	function (sep, string) {
@@ -3671,7 +4047,10 @@ var $author$project$Main$render = function (model) {
 						$author$project$Ansi$Font$resetAll,
 						$author$project$Ansi$clearScreen,
 						$author$project$Ansi$setTitle('Micro Dungeon'),
-						A2($author$project$Map$draw, $author$project$Main$drawTile, model.gameMap),
+						A2(
+						$author$project$Map$draw,
+						{canSee: model.canSee, hasSeen: model.hasSeen},
+						model.gameMap),
 						$author$project$Main$drawEntity(model.player)
 					]))));
 };
@@ -3688,12 +4067,13 @@ var $author$project$Main$init = function (randomSeedStarter) {
 	var gameMap = _v0.a;
 	var seed = _v0.b;
 	var startPos = _v0.c;
+	var player = {color: $author$project$Ansi$Color$green, position: startPos, symbol: '☺'};
+	var baseModel = {canSee: $author$project$AssocSet$empty, gameMap: gameMap, hasSeen: $author$project$AssocSet$empty, player: player, seed: seed};
+	var initialSeen = $author$project$Main$calculateVision(baseModel);
 	return $author$project$Main$render(
-		{
-			gameMap: gameMap,
-			player: {color: $author$project$Ansi$Color$green, position: startPos, symbol: '☺'},
-			seed: seed
-		});
+		_Utils_update(
+			baseModel,
+			{canSee: initialSeen, hasSeen: initialSeen}));
 };
 var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $author$project$Main$Stdin = function (a) {
@@ -3759,17 +4139,6 @@ var $author$project$Ansi$isUpArrow = function (str) {
 		return false;
 	}
 };
-var $author$project$Map$get = F2(
-	function (pnt, _v0) {
-		var m = _v0.a;
-		var _v1 = A2($elm$core$Array$get, pnt.column - 1, m);
-		if (_v1.$ === 'Nothing') {
-			return $elm$core$Maybe$Nothing;
-		} else {
-			var column = _v1.a;
-			return A2($elm$core$Array$get, pnt.row - 1, column);
-		}
-	});
 var $author$project$Main$moveBy = F3(
 	function (m, amount, ent) {
 		var position = ent.position;
@@ -3793,19 +4162,50 @@ var $author$project$Main$moveBy = F3(
 				{position: nextPnt}) : ent;
 		}
 	});
+var $pzp1997$assoc_list$AssocList$union = F2(
+	function (_v0, rightDict) {
+		var leftAlist = _v0.a;
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (_v1, result) {
+					var lKey = _v1.a;
+					var lValue = _v1.b;
+					return A3($pzp1997$assoc_list$AssocList$insert, lKey, lValue, result);
+				}),
+			rightDict,
+			leftAlist);
+	});
+var $author$project$AssocSet$union = F2(
+	function (_v0, _v1) {
+		var left = _v0.a;
+		var right = _v1.a;
+		return $author$project$AssocSet$Set(
+			A2($pzp1997$assoc_list$AssocList$union, left, right));
+	});
+var $author$project$Main$setSeen = function (model) {
+	var canSee = $author$project$Main$calculateVision(model);
+	return _Utils_update(
+		model,
+		{
+			canSee: canSee,
+			hasSeen: A2($author$project$AssocSet$union, model.hasSeen, canSee)
+		});
+};
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		var str = msg.a;
 		return $author$project$Main$render(
-			_Utils_update(
-				model,
-				{
-					player: A3(
-						$author$project$Main$moveBy,
-						model.gameMap,
-						$author$project$Ansi$isUpArrow(str) ? {column: 0, row: -1} : ($author$project$Ansi$isDownArrow(str) ? {column: 0, row: 1} : ($author$project$Ansi$isLeftArrow(str) ? {column: -1, row: 0} : ($author$project$Ansi$isRightArrow(str) ? {column: 1, row: 0} : {column: 0, row: 0}))),
-						model.player)
-				}));
+			$author$project$Main$setSeen(
+				_Utils_update(
+					model,
+					{
+						player: A3(
+							$author$project$Main$moveBy,
+							model.gameMap,
+							$author$project$Ansi$isUpArrow(str) ? {column: 0, row: -1} : ($author$project$Ansi$isDownArrow(str) ? {column: 0, row: 1} : ($author$project$Ansi$isLeftArrow(str) ? {column: -1, row: 0} : ($author$project$Ansi$isRightArrow(str) ? {column: 1, row: 0} : {column: 0, row: 0}))),
+							model.player)
+					})));
 	});
 var $elm$core$Platform$worker = _Platform_worker;
 var $author$project$Main$main = $elm$core$Platform$worker(

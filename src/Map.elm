@@ -1,11 +1,14 @@
 module Map exposing (..)
 
 import Ansi.Color exposing (Color, Location(..))
+import Ansi.Cursor
 import Array exposing (Array)
+import AssocSet
 import Map.Pnt exposing (Pnt)
 import Map.Rect exposing (Rect)
 import Random exposing (Seed)
 import Random.Extra
+import Terminal
 
 
 type Map a
@@ -41,13 +44,18 @@ wall =
     { walkable = False
     , transparent = False
     , symbol = "█"
-    , color = gray
+    , color =
+        Ansi.Color.rgb
+            { red = 205
+            , green = 205
+            , blue = 155
+            }
     }
 
 
 gray : Color
 gray =
-    Ansi.Color.rgb { red = 205, green = 205, blue = 205 }
+    Ansi.Color.rgb { red = 105, green = 105, blue = 105 }
 
 
 init : { columns : Int, rows : Int } -> (Pnt -> a) -> Map a
@@ -82,8 +90,8 @@ set pnt a (Map m) =
             Map (Array.set (pnt.column - 1) (Array.set (pnt.row - 1) a column) m)
 
 
-draw : (Pnt -> a -> String) -> Map a -> String
-draw drawTile (Map m) =
+draw : { hasSeen : AssocSet.Set Pnt, canSee : AssocSet.Set Pnt } -> Map Tile -> String
+draw { hasSeen, canSee } (Map m) =
     Array.toIndexedList m
         |> List.foldl
             (\( column, columnData ) columnResult ->
@@ -91,14 +99,45 @@ draw drawTile (Map m) =
                     ++ List.foldl
                         (\( row, tile ) rowResult ->
                             rowResult
-                                ++ drawTile
-                                    { column = column + 1, row = row + 1 }
-                                    tile
+                                ++ (let
+                                        pnt : Pnt
+                                        pnt =
+                                            { column = column + 1, row = row + 1 }
+                                    in
+                                    if AssocSet.member pnt canSee then
+                                        drawTile True pnt tile
+
+                                    else if AssocSet.member pnt hasSeen then
+                                        drawTile False pnt tile
+
+                                    else
+                                        "░"
+                                            |> Terminal.color gray
+                                            |> drawAt pnt
+                                   )
                         )
                         ""
                         (Array.toIndexedList columnData)
             )
             ""
+
+
+drawTile : Bool -> Pnt -> Tile -> String
+drawTile canSee pnt tile =
+    tile.symbol
+        |> Terminal.color
+            (if canSee then
+                tile.color
+
+             else
+                gray
+            )
+        |> drawAt pnt
+
+
+drawAt : { row : Int, column : Int } -> String -> String
+drawAt loc str =
+    Ansi.Cursor.moveTo loc ++ str
 
 
 addRoom : Rect -> Map Tile -> Map Tile
