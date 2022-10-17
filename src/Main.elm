@@ -10,6 +10,7 @@ import Map.Pnt exposing (Pnt)
 import Map.Rect exposing (Rect)
 import Map.Shapes
 import Random exposing (Seed)
+import Random.Extra
 import Set exposing (Set)
 import Terminal
 
@@ -48,11 +49,17 @@ main =
 
 type alias Model =
     { player : Entity
+    , enemies : List Enemy
     , seed : Seed
     , gameMap : Map Tile
     , hasSeen : AssocSet.Set Pnt
     , canSee : AssocSet.Set Pnt
     }
+
+
+type Enemy
+    = Troll Entity
+    | Orc Entity
 
 
 boardMax : Pnt
@@ -65,7 +72,7 @@ boardMax =
 init : Int -> ( Model, Cmd Msg )
 init randomSeedStarter =
     let
-        ( gameMap, seed, startPos ) =
+        ( gameMap, seed, rooms ) =
             Map.generate
                 { columns = boardMax.column
                 , rows = boardMax.row
@@ -73,6 +80,24 @@ init randomSeedStarter =
                 , roomExtents = { minSize = 6, maxSize = 10 }
                 }
                 (Random.initialSeed randomSeedStarter)
+
+        maxMonstersPerRoom =
+            2
+
+        ( startPos, enemyRooms ) =
+            case rooms of
+                [] ->
+                    ( { column = boardMax.column // 2
+                      , row = boardMax.row // 2
+                      }
+                    , []
+                    )
+
+                firstRoom :: rest ->
+                    ( Map.Rect.center firstRoom, rest )
+
+        ( trolls, orcs, finalSeed ) =
+            generateEnemies maxMonstersPerRoom seed enemyRooms
 
         player =
             { position = startPos
@@ -82,7 +107,12 @@ init randomSeedStarter =
 
         baseModel =
             { player = player
-            , seed = seed
+            , enemies =
+                List.concatMap identity
+                    [ List.map (\p -> Troll { position = p, symbol = "@", color = Ansi.Color.red }) trolls
+                    , List.map (\p -> Orc { position = p, symbol = "◉", color = Ansi.Color.red }) orcs
+                    ]
+            , seed = finalSeed
             , gameMap = gameMap
             , hasSeen = AssocSet.empty
             , canSee = AssocSet.empty
@@ -96,6 +126,75 @@ init randomSeedStarter =
             | hasSeen = initialSeen
             , canSee = initialSeen
         }
+
+
+generateEnemies : Int -> Seed -> List Rect -> ( List Pnt, List Pnt, Seed )
+generateEnemies maxMonstersPerRoom seed enemyRooms =
+    List.foldl
+        (\room ( trls, ocs, s ) ->
+            let
+                ( ens, s2 ) =
+                    Random.step
+                        (Random.int 0 maxMonstersPerRoom
+                            |> Random.andThen
+                                (\monsterCount ->
+                                    Random.list monsterCount
+                                        (Random.map3
+                                            (\column row isTroll ->
+                                                if isTroll then
+                                                    Left { column = column, row = row }
+
+                                                else
+                                                    Right { column = column, row = row }
+                                            )
+                                            (Random.int (room.p1.column + 1) (room.p2.column - 1))
+                                            (Random.int (room.p1.row + 1) (room.p2.row - 1))
+                                            (Random.Extra.oneIn 8)
+                                        )
+                                )
+                        )
+                        s
+            in
+            ( List.foldr
+                (\either res ->
+                    case either of
+                        Left t ->
+                            if List.member t res then
+                                res
+
+                            else
+                                t :: res
+
+                        Right _ ->
+                            res
+                )
+                trls
+                ens
+            , List.foldr
+                (\either res ->
+                    case either of
+                        Left _ ->
+                            ocs
+
+                        Right o ->
+                            if List.member o res then
+                                res
+
+                            else
+                                o :: res
+                )
+                ocs
+                ens
+            , s2
+            )
+        )
+        ( [], [], seed )
+        enemyRooms
+
+
+type Either a b
+    = Left a
+    | Right b
 
 
 calculateVision : Model -> AssocSet.Set Pnt
@@ -223,6 +322,25 @@ render model =
             , canSee = model.canSee
             }
             model.gameMap
+      , model.enemies
+            |> List.filterMap
+                (\enemy ->
+                    case enemy of
+                        Troll ent ->
+                            if AssocSet.member ent.position model.canSee then
+                                Just (drawEntity ent)
+
+                            else
+                                Nothing
+
+                        Orc ent ->
+                            if AssocSet.member ent.position model.canSee then
+                                Just (drawEntity ent)
+
+                            else
+                                Nothing
+                )
+            |> String.concat
       , model.player |> drawEntity
       ]
         |> String.concat

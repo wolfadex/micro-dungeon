@@ -214,7 +214,7 @@ generate :
     , roomAttempts : Int
     }
     -> Seed
-    -> ( Map Tile, Seed, Pnt )
+    -> ( Map Tile, Seed, List Rect )
 generate config seed =
     let
         baseMap : Map Tile
@@ -254,14 +254,7 @@ generate config seed =
     in
     ( finalMap
     , finalSeed
-    , case List.reverse rooms of
-        [] ->
-            { column = config.columns // 2
-            , row = config.rows // 2
-            }
-
-        firstRoom :: _ ->
-            Map.Rect.center firstRoom
+    , List.reverse rooms
     )
 
 

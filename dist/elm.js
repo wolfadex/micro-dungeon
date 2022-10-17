@@ -2401,7 +2401,6 @@ function _Platform_mergeExportsDebug(moduleName, obj, exports)
 	}
 }
 */
-var $author$project$Main$boardMax = {column: 80, row: 45};
 var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var $elm$core$Array$foldr = F3(
@@ -2482,6 +2481,13 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
+var $author$project$Main$Orc = function (a) {
+	return {$: 'Orc', a: a};
+};
+var $author$project$Main$Troll = function (a) {
+	return {$: 'Troll', a: a};
+};
+var $author$project$Main$boardMax = {column: 80, row: 45};
 var $elm$core$Basics$apR = F2(
 	function (x, f) {
 		return f(x);
@@ -2972,6 +2978,10 @@ var $author$project$Main$calculateVision = function (model) {
 			},
 			A2($author$project$Map$Shapes$circle, 8, model.player.position)));
 };
+var $elm$core$Basics$idiv = _Basics_idiv;
+var $author$project$Map$Rect$center = function (r) {
+	return {column: ((r.p1.column + r.p2.column) / 2) | 0, row: ((r.p1.row + r.p2.row) / 2) | 0};
+};
 var $pzp1997$assoc_list$AssocList$empty = $pzp1997$assoc_list$AssocList$D(_List_Nil);
 var $author$project$AssocSet$empty = $author$project$AssocSet$Set($pzp1997$assoc_list$AssocList$empty);
 var $elm$core$Basics$True = {$: 'True'};
@@ -3301,10 +3311,6 @@ var $author$project$Map$addTunnel = F3(
 				$elm_community$random_extra$Random$Extra$bool),
 			seed);
 	});
-var $elm$core$Basics$idiv = _Basics_idiv;
-var $author$project$Map$Rect$center = function (r) {
-	return {column: ((r.p1.column + r.p2.column) / 2) | 0, row: ((r.p1.row + r.p2.row) / 2) | 0};
-};
 var $elm$random$Random$andThen = F2(
 	function (callback, _v0) {
 		var genA = _v0.a;
@@ -3583,7 +3589,7 @@ var $author$project$Map$generate = F2(
 		var baseMap = A2(
 			$author$project$Map$init,
 			{columns: config.columns, rows: config.rows},
-			function (_v6) {
+			function (_v5) {
 				return $author$project$Map$wall;
 			});
 		var _v0 = A3($author$project$Map$generateRooms, config, seed, _List_Nil);
@@ -3627,15 +3633,144 @@ var $author$project$Map$generate = F2(
 		return _Utils_Tuple3(
 			finalMap,
 			finalSeed,
-			function () {
-				var _v5 = $elm$core$List$reverse(rooms);
-				if (!_v5.b) {
-					return {column: (config.columns / 2) | 0, row: (config.rows / 2) | 0};
-				} else {
-					var firstRoom = _v5.a;
-					return $author$project$Map$Rect$center(firstRoom);
-				}
-			}());
+			$elm$core$List$reverse(rooms));
+	});
+var $author$project$Main$Left = function (a) {
+	return {$: 'Left', a: a};
+};
+var $author$project$Main$Right = function (a) {
+	return {$: 'Right', a: a};
+};
+var $elm$random$Random$listHelp = F4(
+	function (revList, n, gen, seed) {
+		listHelp:
+		while (true) {
+			if (n < 1) {
+				return _Utils_Tuple2(revList, seed);
+			} else {
+				var _v0 = gen(seed);
+				var value = _v0.a;
+				var newSeed = _v0.b;
+				var $temp$revList = A2($elm$core$List$cons, value, revList),
+					$temp$n = n - 1,
+					$temp$gen = gen,
+					$temp$seed = newSeed;
+				revList = $temp$revList;
+				n = $temp$n;
+				gen = $temp$gen;
+				seed = $temp$seed;
+				continue listHelp;
+			}
+		}
+	});
+var $elm$random$Random$list = F2(
+	function (n, _v0) {
+		var gen = _v0.a;
+		return $elm$random$Random$Generator(
+			function (seed) {
+				return A4($elm$random$Random$listHelp, _List_Nil, n, gen, seed);
+			});
+	});
+var $elm$random$Random$map3 = F4(
+	function (func, _v0, _v1, _v2) {
+		var genA = _v0.a;
+		var genB = _v1.a;
+		var genC = _v2.a;
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v3 = genA(seed0);
+				var a = _v3.a;
+				var seed1 = _v3.b;
+				var _v4 = genB(seed1);
+				var b = _v4.a;
+				var seed2 = _v4.b;
+				var _v5 = genC(seed2);
+				var c = _v5.a;
+				var seed3 = _v5.b;
+				return _Utils_Tuple2(
+					A3(func, a, b, c),
+					seed3);
+			});
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $elm_community$random_extra$Random$Extra$oneIn = function (n) {
+	return A2(
+		$elm$random$Random$map,
+		$elm$core$Basics$eq(1),
+		A2($elm$random$Random$int, 1, n));
+};
+var $author$project$Main$generateEnemies = F3(
+	function (maxMonstersPerRoom, seed, enemyRooms) {
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (room, _v0) {
+					var trls = _v0.a;
+					var ocs = _v0.b;
+					var s = _v0.c;
+					var _v1 = A2(
+						$elm$random$Random$step,
+						A2(
+							$elm$random$Random$andThen,
+							function (monsterCount) {
+								return A2(
+									$elm$random$Random$list,
+									monsterCount,
+									A4(
+										$elm$random$Random$map3,
+										F3(
+											function (column, row, isTroll) {
+												return isTroll ? $author$project$Main$Left(
+													{column: column, row: row}) : $author$project$Main$Right(
+													{column: column, row: row});
+											}),
+										A2($elm$random$Random$int, room.p1.column + 1, room.p2.column - 1),
+										A2($elm$random$Random$int, room.p1.row + 1, room.p2.row - 1),
+										$elm_community$random_extra$Random$Extra$oneIn(8)));
+							},
+							A2($elm$random$Random$int, 0, maxMonstersPerRoom)),
+						s);
+					var ens = _v1.a;
+					var s2 = _v1.b;
+					return _Utils_Tuple3(
+						A3(
+							$elm$core$List$foldr,
+							F2(
+								function (either, res) {
+									if (either.$ === 'Left') {
+										var t = either.a;
+										return A2($elm$core$List$member, t, res) ? res : A2($elm$core$List$cons, t, res);
+									} else {
+										return res;
+									}
+								}),
+							trls,
+							ens),
+						A3(
+							$elm$core$List$foldr,
+							F2(
+								function (either, res) {
+									if (either.$ === 'Left') {
+										return ocs;
+									} else {
+										var o = either.a;
+										return A2($elm$core$List$member, o, res) ? res : A2($elm$core$List$cons, o, res);
+									}
+								}),
+							ocs,
+							ens),
+						s2);
+				}),
+			_Utils_Tuple3(_List_Nil, _List_Nil, seed),
+			enemyRooms);
 	});
 var $author$project$Ansi$Color$green = $author$project$Ansi$Color$Color(
 	{blue: 0, green: 255, red: 0});
@@ -3648,6 +3783,8 @@ var $elm$random$Random$initialSeed = function (x) {
 	return $elm$random$Random$next(
 		A2($elm$random$Random$Seed, state2, incr));
 };
+var $author$project$Ansi$Color$red = $author$project$Ansi$Color$Color(
+	{blue: 0, green: 0, red: 255});
 var $author$project$Ansi$Internal$commandStr = '\u001B[';
 var $author$project$Ansi$Internal$toCommand = function (str) {
 	return _Utils_ap($author$project$Ansi$Internal$commandStr, str);
@@ -3843,6 +3980,24 @@ var $author$project$Main$drawEntity = function (ent) {
 		ent.position,
 		A2($author$project$Terminal$color, ent.color, ent.symbol));
 };
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
 var $author$project$Ansi$Cursor$hide = $author$project$Ansi$Internal$toCommand('?25l');
 var $author$project$Ansi$Font$resetAll = $author$project$Ansi$Internal$toCommand('0m');
 var $author$project$Ansi$setTitle = function (title) {
@@ -4051,10 +4206,26 @@ var $author$project$Main$render = function (model) {
 						$author$project$Map$draw,
 						{canSee: model.canSee, hasSeen: model.hasSeen},
 						model.gameMap),
+						$elm$core$String$concat(
+						A2(
+							$elm$core$List$filterMap,
+							function (enemy) {
+								if (enemy.$ === 'Troll') {
+									var ent = enemy.a;
+									return A2($author$project$AssocSet$member, ent.position, model.canSee) ? $elm$core$Maybe$Just(
+										$author$project$Main$drawEntity(ent)) : $elm$core$Maybe$Nothing;
+								} else {
+									var ent = enemy.a;
+									return A2($author$project$AssocSet$member, ent.position, model.canSee) ? $elm$core$Maybe$Just(
+										$author$project$Main$drawEntity(ent)) : $elm$core$Maybe$Nothing;
+								}
+							},
+							model.enemies)),
 						$author$project$Main$drawEntity(model.player)
 					]))));
 };
 var $author$project$Main$init = function (randomSeedStarter) {
+	var maxMonstersPerRoom = 2;
 	var _v0 = A2(
 		$author$project$Map$generate,
 		{
@@ -4066,9 +4237,54 @@ var $author$project$Main$init = function (randomSeedStarter) {
 		$elm$random$Random$initialSeed(randomSeedStarter));
 	var gameMap = _v0.a;
 	var seed = _v0.b;
-	var startPos = _v0.c;
+	var rooms = _v0.c;
+	var _v1 = function () {
+		if (!rooms.b) {
+			return _Utils_Tuple2(
+				{column: ($author$project$Main$boardMax.column / 2) | 0, row: ($author$project$Main$boardMax.row / 2) | 0},
+				_List_Nil);
+		} else {
+			var firstRoom = rooms.a;
+			var rest = rooms.b;
+			return _Utils_Tuple2(
+				$author$project$Map$Rect$center(firstRoom),
+				rest);
+		}
+	}();
+	var startPos = _v1.a;
+	var enemyRooms = _v1.b;
+	var _v3 = A3($author$project$Main$generateEnemies, maxMonstersPerRoom, seed, enemyRooms);
+	var trolls = _v3.a;
+	var orcs = _v3.b;
+	var finalSeed = _v3.c;
 	var player = {color: $author$project$Ansi$Color$green, position: startPos, symbol: '☺'};
-	var baseModel = {canSee: $author$project$AssocSet$empty, gameMap: gameMap, hasSeen: $author$project$AssocSet$empty, player: player, seed: seed};
+	var baseModel = {
+		canSee: $author$project$AssocSet$empty,
+		enemies: A2(
+			$elm$core$List$concatMap,
+			$elm$core$Basics$identity,
+			_List_fromArray(
+				[
+					A2(
+					$elm$core$List$map,
+					function (p) {
+						return $author$project$Main$Troll(
+							{color: $author$project$Ansi$Color$red, position: p, symbol: '@'});
+					},
+					trolls),
+					A2(
+					$elm$core$List$map,
+					function (p) {
+						return $author$project$Main$Orc(
+							{color: $author$project$Ansi$Color$red, position: p, symbol: '◉'});
+					},
+					orcs)
+				])),
+		gameMap: gameMap,
+		hasSeen: $author$project$AssocSet$empty,
+		player: player,
+		seed: finalSeed
+	};
 	var initialSeen = $author$project$Main$calculateVision(baseModel);
 	return $author$project$Main$render(
 		_Utils_update(
