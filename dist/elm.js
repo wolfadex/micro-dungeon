@@ -2956,7 +2956,8 @@ var $author$project$Map$Shapes$line = F2(
 		var _v0 = A2($author$project$Map$Shapes$initLine, p1, p0);
 		var statics = _v0.a;
 		var error = _v0.b;
-		return A4($author$project$Map$Shapes$lineLoop, statics, error, p0, _List_Nil);
+		return $elm$core$List$reverse(
+			A4($author$project$Map$Shapes$lineLoop, statics, error, p0, _List_Nil));
 	});
 var $author$project$Main$calculateVision = function (model) {
 	return $author$project$AssocSet$fromList(
@@ -2967,8 +2968,7 @@ var $author$project$Main$calculateVision = function (model) {
 					$author$project$Main$keepUntil,
 					model.gameMap,
 					_List_Nil,
-					$elm$core$List$reverse(
-						A2($author$project$Map$Shapes$line, model.player.position, edgePnt)));
+					A2($author$project$Map$Shapes$line, model.player.position, edgePnt));
 			},
 			A2($author$project$Map$Shapes$circle, 8, model.player.position)));
 };

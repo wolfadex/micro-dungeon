@@ -104,7 +104,6 @@ calculateVision model =
         |> List.concatMap
             (\edgePnt ->
                 Map.Shapes.line model.player.position edgePnt
-                    |> List.reverse
                     |> keepUntil model.gameMap []
             )
         |> AssocSet.fromList

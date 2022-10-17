@@ -14,6 +14,7 @@ line p0 p1 =
             initLine p1 p0
     in
     lineLoop statics error p0 []
+        |> List.reverse
 
 
 circle : Int -> Pnt -> List Pnt
