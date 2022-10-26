@@ -356,8 +356,6 @@ render model =
         |> stdout
     )
 
-    )
-
 
 drawAt : { row : Int, column : Int } -> String -> String
 drawAt loc str =

@@ -1,5 +1,5 @@
-// -- // -- (function(scope){
-// -- // -- 'use strict';
+// -- (function(scope){
+// -- 'use strict';
 
 function F(arity, fun, wrapper) {
   wrapper.a = arity;
@@ -2354,7 +2354,6 @@ function _Platform_setupIncomingPort(name, sendToApp)
 
 
 /*
-/*
 function _Platform_export_UNUSED(exports)
 {
 	scope['Elm']
@@ -2363,9 +2362,7 @@ function _Platform_export_UNUSED(exports)
 }
 
 */
-*/
 
-/*
 /*
 function _Platform_mergeExportsProd(obj, exports)
 {
@@ -2379,10 +2376,8 @@ function _Platform_mergeExportsProd(obj, exports)
 	}
 }
 */
-*/
 
 
-/*
 /*
 function _Platform_export(exports)
 {
@@ -2392,9 +2387,7 @@ function _Platform_export(exports)
 }
 
 */
-*/
 
-/*
 /*
 function _Platform_mergeExportsDebug(moduleName, obj, exports)
 {
@@ -2407,7 +2400,6 @@ function _Platform_mergeExportsDebug(moduleName, obj, exports)
 			: (obj[name] = exports[name]);
 	}
 }
-*/
 */
 var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
@@ -4442,11 +4434,7 @@ var $elm$core$Platform$worker = _Platform_worker;
 var $author$project$Main$main = $elm$core$Platform$worker(
 	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update});
 /*
-/*
 _Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$int)(0)}});}(this));
 */
-*/
-export const Elm = {'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$int)(0)}};
-  
 export const Elm = {'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$int)(0)}};
   
