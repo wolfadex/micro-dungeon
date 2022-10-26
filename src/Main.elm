@@ -356,39 +356,6 @@ render model =
         |> stdout
     )
 
-
-reRender : Model -> Model -> ( Model, Cmd Msg )
-reRender oldModel newModel =
-    ( newModel
-    , [ Map.drawSeenChanges
-            { sawBefore = oldModel.canSee
-            , canSee = newModel.canSee
-            }
-            newModel.gameMap
-      , newModel.enemies
-            |> List.filterMap
-                (\enemy ->
-                    case enemy of
-                        Troll ent ->
-                            if AssocSet.member ent.position newModel.canSee then
-                                Just (drawEntity ent ent)
-
-                            else
-                                Nothing
-
-                        Orc ent ->
-                            if AssocSet.member ent.position newModel.canSee then
-                                Just (drawEntity ent ent)
-
-                            else
-                                Nothing
-                )
-            |> String.concat
-      , newModel.player
-            |> drawEntity oldModel.player
-      ]
-        |> String.concat
-        |> stdout
     )
 
 
