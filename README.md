@@ -1,10 +1,5 @@
-# Elm Nix Template
+# Micro Dungeon
 
-A very basic template for an [Elm](https://elm-lang.org/) project, using [Nix](https://nixos.org/) and [direnv](https://direnv.net/).
+A 🚧 WIP 🚧 rudimentary rogue-like game for the terminal
 
-## Getting Started
-
-- Make sure you have both Nix and direnv installed
-- Clone this repo, or use the GitHub `Use this template` button
-- Inside your cloned repo, run `direnv allow`
-- Start coding!
+<img src="./Screen Shot 2022-10-25 at 9.11.25 PM.png" />
