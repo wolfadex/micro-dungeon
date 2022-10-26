@@ -1,18 +1,13 @@
-import * as elmAnsi from '../elm-dependencies/elm-ansi/dist/elm-ansi.js'
-import { Elm } from './elm.js'
+import * as elmAnsi from "../elm-dependencies/elm-ansi/examples/dist/elm-ansi.js";
+import { Elm } from "./elm.js";
 
-elmAnsi.init()
+elmAnsi.init();
 
-let app
+let app;
 
 elmAnsi.onRawData(function (data) {
-  // Close on Esc or Ctrl+c
-  if (data === '\x1B' || data === '\u0003') {
-    process.exit(0)
-  }
-
-  app.ports.stdin.send(data)
-})
+  app.ports.stdin.send(data);
+});
 
 // elmAnsi.onKeypress(function (key) {
 //   app.ports.keypress.send(key)
@@ -20,8 +15,12 @@ elmAnsi.onRawData(function (data) {
 
 app = Elm.Main.init({
   flags: Date.now(),
-})
+});
 
 app.ports.stdout.subscribe(function (data) {
-  elmAnsi.writeToStdout(data)
-})
+  elmAnsi.writeToStdout(data);
+});
+
+app.ports.exit.subscribe(function (code) {
+  process.exit(code);
+});

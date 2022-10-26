@@ -3785,11 +3785,7 @@ var $elm$random$Random$initialSeed = function (x) {
 };
 var $author$project$Ansi$Color$red = $author$project$Ansi$Color$Color(
 	{blue: 0, green: 0, red: 255});
-var $author$project$Ansi$Internal$commandStr = '\u001B[';
-var $author$project$Ansi$Internal$toCommand = function (str) {
-	return _Utils_ap($author$project$Ansi$Internal$commandStr, str);
-};
-var $author$project$Ansi$clearScreen = $author$project$Ansi$Internal$toCommand('2J');
+var $author$project$Ansi$clearScreen = '\u001Bc';
 var $elm$core$String$join = F2(
 	function (sep, chunks) {
 		return A2(
@@ -3800,61 +3796,15 @@ var $elm$core$String$join = F2(
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
-var $author$project$Ansi$Color$Foreground = {$: 'Foreground'};
-var $author$project$Ansi$Color$encodeLocation = function (loc) {
-	if (loc.$ === 'Foreground') {
-		return 38;
-	} else {
-		return 48;
-	}
-};
 var $elm$core$String$fromInt = _String_fromNumber;
-var $author$project$Ansi$Color$encode = F2(
-	function (location, _v0) {
-		var col = _v0.a;
-		return function (s) {
-			return s + 'm';
-		}(
-			A2(
-				$elm$core$String$join,
-				';',
-				A2(
-					$elm$core$List$map,
-					$elm$core$String$fromInt,
-					_List_fromArray(
-						[
-							$author$project$Ansi$Color$encodeLocation(location),
-							2,
-							col.red,
-							col.green,
-							col.blue
-						]))));
-	});
-var $author$project$Ansi$Font$color = function (c) {
-	return $author$project$Ansi$Internal$toCommand(
-		A2($author$project$Ansi$Color$encode, $author$project$Ansi$Color$Foreground, c));
+var $author$project$Ansi$Internal$separator = ';';
+var $author$project$Ansi$Internal$esc = '\u001B[';
+var $author$project$Ansi$Internal$toCommand = function (str) {
+	return _Utils_ap($author$project$Ansi$Internal$esc, str);
 };
-var $author$project$Ansi$Color$reset = function (location) {
-	return $author$project$Ansi$Internal$toCommand(
-		function () {
-			if (location.$ === 'Foreground') {
-				return '39';
-			} else {
-				return '49';
-			}
-		}() + 'm');
-};
-var $author$project$Terminal$color = F2(
-	function (c, str) {
-		return _Utils_ap(
-			$author$project$Ansi$Font$color(c),
-			_Utils_ap(
-				str,
-				$author$project$Ansi$Color$reset($author$project$Ansi$Color$Foreground)));
-	});
 var $author$project$Ansi$Cursor$moveTo = function (to) {
 	return $author$project$Ansi$Internal$toCommand(
-		$elm$core$String$fromInt(to.row) + (';' + ($elm$core$String$fromInt(to.column) + 'H')));
+		$elm$core$String$fromInt(to.row) + ($author$project$Ansi$Internal$separator + ($elm$core$String$fromInt(to.column) + 'H')));
 };
 var $author$project$Map$drawAt = F2(
 	function (loc, str) {
@@ -3862,13 +3812,61 @@ var $author$project$Map$drawAt = F2(
 			$author$project$Ansi$Cursor$moveTo(loc),
 			str);
 	});
+var $author$project$Ansi$Color$Font = {$: 'Font'};
+var $author$project$Ansi$Color$end = function (location) {
+	return $author$project$Ansi$Internal$toCommand(
+		function () {
+			if (location.$ === 'Font') {
+				return '39';
+			} else {
+				return '49';
+			}
+		}() + 'm');
+};
+var $author$project$Ansi$Color$encodeLocation = function (loc) {
+	if (loc.$ === 'Font') {
+		return 38;
+	} else {
+		return 48;
+	}
+};
+var $author$project$Ansi$Color$start = F2(
+	function (location, _v0) {
+		var col = _v0.a;
+		return $author$project$Ansi$Internal$toCommand(
+			function (s) {
+				return s + 'm';
+			}(
+				A2(
+					$elm$core$String$join,
+					$author$project$Ansi$Internal$separator,
+					A2(
+						$elm$core$List$map,
+						$elm$core$String$fromInt,
+						_List_fromArray(
+							[
+								$author$project$Ansi$Color$encodeLocation(location),
+								2,
+								col.red,
+								col.green,
+								col.blue
+							])))));
+	});
+var $author$project$Ansi$Color$fontColor = F2(
+	function (c, str) {
+		return _Utils_ap(
+			A2($author$project$Ansi$Color$start, $author$project$Ansi$Color$Font, c),
+			_Utils_ap(
+				str,
+				$author$project$Ansi$Color$end($author$project$Ansi$Color$Font)));
+	});
 var $author$project$Map$drawTile = F3(
 	function (canSee, pnt, tile) {
 		return A2(
 			$author$project$Map$drawAt,
 			pnt,
 			A2(
-				$author$project$Terminal$color,
+				$author$project$Ansi$Color$fontColor,
 				canSee ? tile.color : $author$project$Map$gray,
 				tile.symbol));
 	});
@@ -3959,7 +3957,7 @@ var $author$project$Map$draw = F2(
 											return A2($author$project$AssocSet$member, pnt, canSee) ? A3($author$project$Map$drawTile, true, pnt, tile) : (A2($author$project$AssocSet$member, pnt, hasSeen) ? A3($author$project$Map$drawTile, false, pnt, tile) : A2(
 												$author$project$Map$drawAt,
 												pnt,
-												A2($author$project$Terminal$color, $author$project$Map$gray, '░')));
+												A2($author$project$Ansi$Color$fontColor, $author$project$Map$gray, '░')));
 										}());
 								}),
 							'',
@@ -3974,12 +3972,15 @@ var $author$project$Main$drawAt = F2(
 			$author$project$Ansi$Cursor$moveTo(loc),
 			str);
 	});
-var $author$project$Main$drawEntity = function (ent) {
-	return A2(
-		$author$project$Main$drawAt,
-		ent.position,
-		A2($author$project$Terminal$color, ent.color, ent.symbol));
-};
+var $author$project$Main$drawEntity = F2(
+	function (oldEnt, newEnt) {
+		return _Utils_ap(
+			A2($author$project$Main$drawAt, oldEnt.position, ' '),
+			A2(
+				$author$project$Main$drawAt,
+				newEnt.position,
+				A2($author$project$Ansi$Color$fontColor, newEnt.color, newEnt.symbol)));
+	});
 var $elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
 		var _v0 = f(mx);
@@ -4000,8 +4001,10 @@ var $elm$core$List$filterMap = F2(
 	});
 var $author$project$Ansi$Cursor$hide = $author$project$Ansi$Internal$toCommand('?25l');
 var $author$project$Ansi$Font$resetAll = $author$project$Ansi$Internal$toCommand('0m');
+var $author$project$Ansi$Internal$bel = '\u0007';
+var $author$project$Ansi$Internal$osc = '\u001B]';
 var $author$project$Ansi$setTitle = function (title) {
-	return '\u001B]0;' + (title + '\u0007');
+	return $author$project$Ansi$Internal$osc + ('0' + ($author$project$Ansi$Internal$separator + (title + $author$project$Ansi$Internal$bel)));
 };
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
@@ -4198,9 +4201,9 @@ var $author$project$Main$render = function (model) {
 			$elm$core$String$concat(
 				_List_fromArray(
 					[
-						$author$project$Ansi$Cursor$hide,
 						$author$project$Ansi$Font$resetAll,
 						$author$project$Ansi$clearScreen,
+						$author$project$Ansi$Cursor$hide,
 						$author$project$Ansi$setTitle('Micro Dungeon'),
 						A2(
 						$author$project$Map$draw,
@@ -4213,15 +4216,15 @@ var $author$project$Main$render = function (model) {
 								if (enemy.$ === 'Troll') {
 									var ent = enemy.a;
 									return A2($author$project$AssocSet$member, ent.position, model.canSee) ? $elm$core$Maybe$Just(
-										$author$project$Main$drawEntity(ent)) : $elm$core$Maybe$Nothing;
+										A2($author$project$Main$drawEntity, ent, ent)) : $elm$core$Maybe$Nothing;
 								} else {
 									var ent = enemy.a;
 									return A2($author$project$AssocSet$member, ent.position, model.canSee) ? $elm$core$Maybe$Just(
-										$author$project$Main$drawEntity(ent)) : $elm$core$Maybe$Nothing;
+										A2($author$project$Main$drawEntity, ent, ent)) : $elm$core$Maybe$Nothing;
 								}
 							},
 							model.enemies)),
-						$author$project$Main$drawEntity(model.player)
+						A2($author$project$Main$drawEntity, model.player, model.player)
 					]))));
 };
 var $author$project$Main$init = function (randomSeedStarter) {
@@ -4305,6 +4308,8 @@ var $author$project$Main$subscriptions = function (_v0) {
 				$author$project$Main$stdin($author$project$Main$Stdin)
 			]));
 };
+var $elm$json$Json$Encode$int = _Json_wrap;
+var $author$project$Main$exit = _Platform_outgoingPort('exit', $elm$json$Json$Encode$int);
 var $elm$core$String$length = _String_length;
 var $elm$core$String$slice = _String_slice;
 var $elm$core$String$dropLeft = F2(
@@ -4316,39 +4321,39 @@ var $elm$core$String$dropLeft = F2(
 			string);
 	});
 var $elm$core$String$startsWith = _String_startsWith;
-var $author$project$Ansi$getCommand = function (str) {
-	return A2($elm$core$String$startsWith, $author$project$Ansi$Internal$commandStr, str) ? $elm$core$Maybe$Just(
+var $author$project$Ansi$Parse$getCommand = function (str) {
+	return A2($elm$core$String$startsWith, $author$project$Ansi$Internal$esc, str) ? $elm$core$Maybe$Just(
 		A2(
 			$elm$core$String$dropLeft,
-			$elm$core$String$length($author$project$Ansi$Internal$commandStr),
+			$elm$core$String$length($author$project$Ansi$Internal$esc),
 			str)) : $elm$core$Maybe$Nothing;
 };
-var $author$project$Ansi$isDownArrow = function (str) {
-	var _v0 = $author$project$Ansi$getCommand(str);
+var $author$project$Ansi$Parse$isDownArrow = function (str) {
+	var _v0 = $author$project$Ansi$Parse$getCommand(str);
 	if ((_v0.$ === 'Just') && (_v0.a === 'B')) {
 		return true;
 	} else {
 		return false;
 	}
 };
-var $author$project$Ansi$isLeftArrow = function (str) {
-	var _v0 = $author$project$Ansi$getCommand(str);
+var $author$project$Ansi$Parse$isLeftArrow = function (str) {
+	var _v0 = $author$project$Ansi$Parse$getCommand(str);
 	if ((_v0.$ === 'Just') && (_v0.a === 'D')) {
 		return true;
 	} else {
 		return false;
 	}
 };
-var $author$project$Ansi$isRightArrow = function (str) {
-	var _v0 = $author$project$Ansi$getCommand(str);
+var $author$project$Ansi$Parse$isRightArrow = function (str) {
+	var _v0 = $author$project$Ansi$Parse$getCommand(str);
 	if ((_v0.$ === 'Just') && (_v0.a === 'C')) {
 		return true;
 	} else {
 		return false;
 	}
 };
-var $author$project$Ansi$isUpArrow = function (str) {
-	var _v0 = $author$project$Ansi$getCommand(str);
+var $author$project$Ansi$Parse$isUpArrow = function (str) {
+	var _v0 = $author$project$Ansi$Parse$getCommand(str);
 	if ((_v0.$ === 'Just') && (_v0.a === 'A')) {
 		return true;
 	} else {
@@ -4410,8 +4415,10 @@ var $author$project$Main$setSeen = function (model) {
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		var str = msg.a;
-		return $author$project$Main$render(
+		var input = msg.a;
+		return ((input === '\u001B') || (input === '\u0003')) ? _Utils_Tuple2(
+			model,
+			$author$project$Main$exit(0)) : $author$project$Main$render(
 			$author$project$Main$setSeen(
 				_Utils_update(
 					model,
@@ -4419,7 +4426,7 @@ var $author$project$Main$update = F2(
 						player: A3(
 							$author$project$Main$moveBy,
 							model.gameMap,
-							$author$project$Ansi$isUpArrow(str) ? {column: 0, row: -1} : ($author$project$Ansi$isDownArrow(str) ? {column: 0, row: 1} : ($author$project$Ansi$isLeftArrow(str) ? {column: -1, row: 0} : ($author$project$Ansi$isRightArrow(str) ? {column: 1, row: 0} : {column: 0, row: 0}))),
+							$author$project$Ansi$Parse$isUpArrow(input) ? {column: 0, row: -1} : ($author$project$Ansi$Parse$isDownArrow(input) ? {column: 0, row: 1} : ($author$project$Ansi$Parse$isLeftArrow(input) ? {column: -1, row: 0} : ($author$project$Ansi$Parse$isRightArrow(input) ? {column: 1, row: 0} : {column: 0, row: 0}))),
 							model.player)
 					})));
 	});

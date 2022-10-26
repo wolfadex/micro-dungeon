@@ -1,6 +1,8 @@
 module AssocSet exposing
     ( Set
+    , diff
     , empty
+    , foldl
     , fromList
     , member
     , union
@@ -32,3 +34,16 @@ fromList list =
 union : Set a -> Set a -> Set a
 union (Set left) (Set right) =
     Set (AssocList.union left right)
+
+
+diff : Set a -> Set a -> Set a
+diff (Set left) (Set right) =
+    Set (AssocList.diff left right)
+
+
+foldl : (a -> b -> b) -> b -> Set a -> b
+foldl fn initB (Set set) =
+    AssocList.foldl
+        (\a () b -> fn a b)
+        initB
+        set

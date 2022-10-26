@@ -2,13 +2,13 @@ module Map exposing (..)
 
 import Ansi.Color exposing (Color, Location(..))
 import Ansi.Cursor
+import Ansi.Font
 import Array exposing (Array)
 import AssocSet
 import Map.Pnt exposing (Pnt)
 import Map.Rect exposing (Rect)
 import Random exposing (Seed)
 import Random.Extra
-import Terminal
 
 
 type Map a
@@ -112,7 +112,7 @@ draw { hasSeen, canSee } (Map m) =
 
                                     else
                                         "░"
-                                            |> Terminal.color gray
+                                            |> Ansi.Color.fontColor gray
                                             |> drawAt pnt
                                    )
                         )
@@ -122,10 +122,42 @@ draw { hasSeen, canSee } (Map m) =
             ""
 
 
+drawSeenChanges : { sawBefore : AssocSet.Set Pnt, canSee : AssocSet.Set Pnt } -> Map Tile -> String
+drawSeenChanges { sawBefore, canSee } m =
+    let
+        noLongerSees =
+            AssocSet.diff sawBefore canSee
+                |> AssocSet.foldl
+                    (\sawPnt result ->
+                        case get sawPnt m of
+                            Nothing ->
+                                result
+
+                            Just tile ->
+                                drawTile False sawPnt tile
+                    )
+                    ""
+
+        newSees =
+            AssocSet.diff canSee sawBefore
+                |> AssocSet.foldl
+                    (\seePnt result ->
+                        case get seePnt m of
+                            Nothing ->
+                                result
+
+                            Just tile ->
+                                drawTile True seePnt tile
+                    )
+                    ""
+    in
+    noLongerSees ++ newSees
+
+
 drawTile : Bool -> Pnt -> Tile -> String
 drawTile canSee pnt tile =
     tile.symbol
-        |> Terminal.color
+        |> Ansi.Color.fontColor
             (if canSee then
                 tile.color
 

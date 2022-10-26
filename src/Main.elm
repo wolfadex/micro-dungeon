@@ -4,6 +4,7 @@ import Ansi
 import Ansi.Color exposing (Location(..))
 import Ansi.Cursor
 import Ansi.Font
+import Ansi.Parse
 import AssocSet
 import Map exposing (..)
 import Map.Pnt exposing (Pnt)
@@ -11,8 +12,6 @@ import Map.Rect exposing (Rect)
 import Map.Shapes
 import Random exposing (Seed)
 import Random.Extra
-import Set exposing (Set)
-import Terminal
 
 
 possibleSymbols =
@@ -123,8 +122,8 @@ init randomSeedStarter =
     in
     render
         { baseModel
-            | hasSeen = initialSeen
-            , canSee = initialSeen
+            | canSee = initialSeen
+            , hasSeen = initialSeen
         }
 
 
@@ -240,6 +239,9 @@ port stdin : (String -> msg) -> Sub msg
 port stdout : String -> Cmd msg
 
 
+port exit : Int -> Cmd msg
+
+
 type Msg
     = Stdin String
 
@@ -247,29 +249,35 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Stdin str ->
-            { model
-                | player =
-                    model.player
-                        |> moveBy model.gameMap
-                            (if Ansi.isUpArrow str then
-                                { column = 0, row = -1 }
+        Stdin input ->
+            -- ESC or Ctrl+C
+            if input == "\u{001B}" || input == "\u{0003}" then
+                ( model, exit 0 )
 
-                             else if Ansi.isDownArrow str then
-                                { column = 0, row = 1 }
+            else
+                { model
+                    | player =
+                        model.player
+                            |> moveBy model.gameMap
+                                (if Ansi.Parse.isUpArrow input then
+                                    { column = 0, row = -1 }
 
-                             else if Ansi.isLeftArrow str then
-                                { column = -1, row = 0 }
+                                 else if Ansi.Parse.isDownArrow input then
+                                    { column = 0, row = 1 }
 
-                             else if Ansi.isRightArrow str then
-                                { column = 1, row = 0 }
+                                 else if Ansi.Parse.isLeftArrow input then
+                                    { column = -1, row = 0 }
 
-                             else
-                                { column = 0, row = 0 }
-                            )
-            }
-                |> setSeen
-                |> render
+                                 else if Ansi.Parse.isRightArrow input then
+                                    { column = 1, row = 0 }
+
+                                 else
+                                    { column = 0, row = 0 }
+                                )
+                }
+                    |> setSeen
+                    -- |> reRender model
+                    |> render
 
 
 setSeen : Model -> Model
@@ -313,9 +321,9 @@ moveBy m amount ({ position } as ent) =
 render : Model -> ( Model, Cmd Msg )
 render model =
     ( model
-    , [ Ansi.Cursor.hide
-      , Ansi.Font.resetAll
+    , [ Ansi.Font.resetAll
       , Ansi.clearScreen
+      , Ansi.Cursor.hide
       , Ansi.setTitle "Micro Dungeon"
       , Map.draw
             { hasSeen = model.hasSeen
@@ -328,20 +336,56 @@ render model =
                     case enemy of
                         Troll ent ->
                             if AssocSet.member ent.position model.canSee then
-                                Just (drawEntity ent)
+                                Just (drawEntity ent ent)
 
                             else
                                 Nothing
 
                         Orc ent ->
                             if AssocSet.member ent.position model.canSee then
-                                Just (drawEntity ent)
+                                Just (drawEntity ent ent)
 
                             else
                                 Nothing
                 )
             |> String.concat
-      , model.player |> drawEntity
+      , model.player
+            |> drawEntity model.player
+      ]
+        |> String.concat
+        |> stdout
+    )
+
+
+reRender : Model -> Model -> ( Model, Cmd Msg )
+reRender oldModel newModel =
+    ( newModel
+    , [ Map.drawSeenChanges
+            { sawBefore = oldModel.canSee
+            , canSee = newModel.canSee
+            }
+            newModel.gameMap
+      , newModel.enemies
+            |> List.filterMap
+                (\enemy ->
+                    case enemy of
+                        Troll ent ->
+                            if AssocSet.member ent.position newModel.canSee then
+                                Just (drawEntity ent ent)
+
+                            else
+                                Nothing
+
+                        Orc ent ->
+                            if AssocSet.member ent.position newModel.canSee then
+                                Just (drawEntity ent ent)
+
+                            else
+                                Nothing
+                )
+            |> String.concat
+      , newModel.player
+            |> drawEntity oldModel.player
       ]
         |> String.concat
         |> stdout
@@ -353,8 +397,10 @@ drawAt loc str =
     Ansi.Cursor.moveTo loc ++ str
 
 
-drawEntity : Entity -> String
-drawEntity ent =
-    ent.symbol
-        |> Terminal.color ent.color
-        |> drawAt ent.position
+drawEntity : Entity -> Entity -> String
+drawEntity oldEnt newEnt =
+    drawAt oldEnt.position " "
+        ++ (newEnt.symbol
+                |> Ansi.Color.fontColor newEnt.color
+                |> drawAt newEnt.position
+           )
